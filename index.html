@@ -40,11 +40,14 @@ header p{color:#cbd5e1;font-size:14px;}
 .btn-secondary{background-color:var(--text-muted);} .btn-secondary:hover{background-color:var(--secondary-color);}
 .btn-danger{background-color:var(--danger);} .btn-danger:hover{background-color:#991b1b;}
 .btn-sm{width:auto;padding:6px 12px;font-size:12px;}
-.badge{display:inline-block;padding:3px 8px;font-size:12px;font-weight:600;border-radius:4px;}
+.badge{display:inline-block;padding:3px 8px;font-size:12px;font-weight:600;border-radius:4px;white-space:nowrap;}
 .badge-medical{background:#fef3c7;color:#d97706;} .badge-process{background:#e0f2fe;color:#0369a1;}
 .badge-passport{background:#e0e7ff;color:#4338ca;} .badge-interview{background:#fef9c3;color:#a16207;} .badge-offer{background:#ffedd5;color:#c2410c;}
 .badge-visa{background:#dcfce7;color:#15803d;} .badge-ticket{background:#f3e8ff;color:#7e22ce;}
 .badge-flown{background:#eceff1;color:#455a64;} .badge-cancel{background:#fee2e2;color:#b91c1c;}
+.badge-new{background:#e0e7ff;color:#4338ca;} .badge-pass{background:#dcfce7;color:#15803d;} .badge-fail{background:#fee2e2;color:#b91c1c;}
+.badge-info{background:#e0f2fe;color:#0369a1;} .badge-proc{background:#fef9c3;color:#a16207;}
+.badge-departed{background:#d1fae5;color:#065f46;} .badge-hold{background:#f3f4f6;color:#4b5563;}
 .section-header{background-color:#f1f5f9;padding:10px 15px;font-weight:700;font-size:15px;margin-top:20px;margin-bottom:10px;border-left:5px solid var(--primary-color);display:flex;justify-content:space-between;}
 .section-header.visa-sec{border-left-color:var(--success);background-color:#f0fdf4;}
 .section-header.flight-sec{border-left-color:var(--info);background-color:#f0f9ff;}
@@ -256,15 +259,29 @@ body.staff-mode .admin-only{display:none !important;}
                 <label style="font-weight:700;display:block;margin-bottom:5px;color:var(--primary-dark);">⚙️ कार्यप्रगति अवस्था अपडेट गर्नुहोस्:</label>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
                     <select id="update-stage-select" class="form-control" style="font-weight:600;flex:1;min-width:200px;">
-                        <option value="New Entry">नयाँ इन्ट्री (New Entry)</option>
-                        <option value="Waiting">Waiting</option>
-                        <option value="Applied">Applied</option>
-                        <option value="Medical">Medical</option>
-                        <option value="Visa Waiting">Visa Waiting</option>
-                        <option value="Visa Received">Visa Received</option>
-                        <option value="Ticket Received">Ticket Received</option>
-                        <option value="Departure">Departure (उडान)</option>
-                        <option value="Cancelled">❌ Cancelled (रद्द)</option>
+                        <option value="New Entry">NEW ENTRY</option>
+                        <option value="Medical Fit">MEDICAL FIT</option>
+                        <option value="Medical Unfit">MEDICAL UNFIT</option>
+                        <option value="Interview Scheduled">INTERVIEW SCHEDULED</option>
+                        <option value="Interview Completed">INTERVIEW COMPLETED</option>
+                        <option value="Interview Passed">INTERVIEW PASSED</option>
+                        <option value="Interview Failed">INTERVIEW FAILED</option>
+                        <option value="Applied">APPLIED</option>
+                        <option value="Job Offer Received">JOB OFFER RECEIVED</option>
+                        <option value="Offer Accepted">OFFER ACCEPTED</option>
+                        <option value="Offer Rejected">OFFER REJECTED</option>
+                        <option value="MOL Received">MOL RECEIVED</option>
+                        <option value="QVC Process">QVC PROCESS</option>
+                        <option value="QVC Passed">QVC PASSED</option>
+                        <option value="QVC Failed">QVC FAILED</option>
+                        <option value="Visa Process">VISA PROCESS</option>
+                        <option value="Visa Received">VISA RECEIVED</option>
+                        <option value="Ticket Process">TICKET PROCESS</option>
+                        <option value="Ticket Received">TICKET RECEIVED (उडान मिति)</option>
+                        <option value="Departed">DEPARTED</option>
+                        <option value="Hold">HOLD</option>
+                        <option value="Cancelled">CANCELLED</option>
+                        <option value="Withdrawn">WITHDRAWN BY CANDIDATE</option>
                     </select>
                     <button class="btn" style="width:auto;" onclick="updateStage()">अपडेट</button>
                 </div>
@@ -518,20 +535,36 @@ document.getElementById('candidate-form').addEventListener('submit', function(e)
 // ================= RENDER =================
 function stageBadge(stage){
   const map = {
-    'New Entry': ['badge-passport','नयाँ इन्ट्री'],
-    'Waiting': ['badge-interview','Waiting'],
-    'Applied': ['badge-offer','Applied'],
-    'Medical': ['badge-medical','Medical'],
-    'Visa Waiting': ['badge-process','Visa Waiting'],
-    'Visa Received': ['badge-visa','Visa Received'],
-    'Ticket Received': ['badge-ticket','Ticket Received'],
-    'Departure': ['badge-flown','Departure'],
-    'Cancelled': ['badge-cancel','Cancelled']
+    'New Entry': ['badge-new','NEW ENTRY'],
+    'Medical Fit': ['badge-pass','MEDICAL FIT'],
+    'Medical Unfit': ['badge-fail','MEDICAL UNFIT'],
+    'Interview Scheduled': ['badge-info','INTERVIEW SCHEDULED'],
+    'Interview Completed': ['badge-info','INTERVIEW COMPLETED'],
+    'Interview Passed': ['badge-pass','INTERVIEW PASSED'],
+    'Interview Failed': ['badge-fail','INTERVIEW FAILED'],
+    'Applied': ['badge-proc','APPLIED'],
+    'Job Offer Received': ['badge-offer','JOB OFFER RECEIVED'],
+    'Offer Accepted': ['badge-pass','OFFER ACCEPTED'],
+    'Offer Rejected': ['badge-fail','OFFER REJECTED'],
+    'MOL Received': ['badge-offer','MOL RECEIVED'],
+    'QVC Process': ['badge-proc','QVC PROCESS'],
+    'QVC Passed': ['badge-pass','QVC PASSED'],
+    'QVC Failed': ['badge-fail','QVC FAILED'],
+    'Visa Process': ['badge-proc','VISA PROCESS'],
+    'Visa Received': ['badge-visa','VISA RECEIVED'],
+    'Ticket Process': ['badge-proc','TICKET PROCESS'],
+    'Ticket Received': ['badge-ticket','TICKET RECEIVED'],
+    'Departed': ['badge-departed','DEPARTED'],
+    'Hold': ['badge-hold','HOLD'],
+    'Cancelled': ['badge-cancel','CANCELLED'],
+    'Withdrawn': ['badge-cancel','WITHDRAWN']
   };
-  const m = map[stage] || ['badge-medical', stage];
+  const m = map[stage] || ['badge-new', stage];
   return `<span class="badge ${m[0]}">${m[1]}</span>`;
 }
-const STAGE_ORDER = ['New Entry','Waiting','Applied','Medical','Visa Waiting','Visa Received','Ticket Received','Departure','Cancelled'];
+const STAGE_ORDER = ['New Entry','Medical Fit','Medical Unfit','Interview Scheduled','Interview Completed','Interview Passed','Interview Failed','Applied','Job Offer Received','Offer Accepted','Offer Rejected','MOL Received','QVC Process','QVC Passed','QVC Failed','Visa Process','Visa Received','Ticket Process','Ticket Received','Departed','Hold','Cancelled','Withdrawn'];
+const DONE_STAGES = ['Departed'];
+const CANCEL_STAGES = ['Medical Unfit','Interview Failed','Offer Rejected','QVC Failed','Cancelled','Withdrawn'];
 
 function renderTable(){
   const q1 = (document.getElementById('search-input')?.value || '').toLowerCase();
@@ -571,10 +604,9 @@ function renderTable(){
 
   const groups = {processing:[], visa:[], flown:[], cancel:[]};
   filtered.forEach(c=>{
-    if(['New Entry','Waiting','Applied','Medical','Visa Waiting'].includes(c.stage)) groups.processing.push(c);
-    else if(c.stage==='Visa Received' || c.stage==='Ticket Received') groups.visa.push(c);
-    else if(c.stage==='Departure') groups.flown.push(c);
-    else if(c.stage==='Cancelled') groups.cancel.push(c);
+    if(c.stage==='Departed') groups.flown.push(c);
+    else if(CANCEL_STAGES.includes(c.stage)) groups.cancel.push(c);
+    else if(['Visa Received','Ticket Process','Ticket Received'].includes(c.stage)) groups.visa.push(c);
     else groups.processing.push(c);
   });
 
@@ -673,16 +705,16 @@ function updateStage(){
   const newStage = document.getElementById('update-stage-select').value;
   let flightDate = '';
   let remarks = '';
-  if((newStage==='Ticket Received' || newStage==='Departure')){
-    const fd = prompt('✈️ उडान मिति लेख्नुहोस् (YYYY-MM-DD):', c.flightDate || '');
+  if((newStage==='Ticket Received' || newStage==='Departed')){
+    const fd = prompt('✈️ उडान (Departure) मिति लेख्नुहोस् (YYYY-MM-DD):', c.flightDate || '');
     if(fd) flightDate = fd;
     else if(newStage==='Ticket Received' && !c.flightDate){
-      alert('⚠️ ध्यान दिनुहोस्: Ticket Received भएपनि उडान मिति अझै राखिएको छैन। पछि सम्भव हुनेबित्तिकै मिति अपडेट गर्नुहोस्।');
+      alert('⚠️ ध्यान दिनुहोस्: Ticket Received भएपनि उडान मिति अझै राखिएको छैन। पछि अवश्य अपडेट गर्नुहोस्।');
     }
   }
-  if(newStage==='Cancelled'){
-    const rs = prompt('❌ रद्द हुनुको कारण / कैफियत लेख्नुहोस्:', c.remarks || '');
-    if(rs === null) return; // Cancel थिचे रद्द प्रक्रिया नै रोक्ने
+  if(CANCEL_STAGES.includes(newStage)){
+    const rs = prompt('❌ कारण / कैफियत लेख्नुहोस् (जस्तै: किन Fail/Cancel/Reject भयो):', c.remarks || '');
+    if(rs === null) return;
     remarks = rs.trim();
   }
   // तुरुन्तै स्क्रिनमा
