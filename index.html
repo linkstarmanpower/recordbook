@@ -115,7 +115,7 @@ body.staff-mode .admin-only{display:none !important;}
 <div class="container" id="main-app" style="display:none;">
     <header>
         <div>
-            <h1>Master Records <span class="online-tag">Online</span></h1>
+            <h1>Master Records <span class="online-tag">Online</span> <span style="font-size:11px;opacity:0.6;">v2.1</span></h1>
             <p>वैदेशिक रोजगार कामदार रेकर्ड व्यवस्थापन प्रणाली</p>
         </div>
         <div class="header-actions">
@@ -913,17 +913,23 @@ async function saveFollowup(){
 function openModal(id){
   editingId = id;
   const c = candidates.find(x=>x.id===id);
-  if(!c) return;
-  fillModal(c);
-  document.getElementById('pay-c-add').value='';
-  document.getElementById('pay-o-add').value='';
-  document.getElementById('pay-c-remarks').value='';
-  document.getElementById('pay-o-remarks').value='';
-  document.getElementById('pay-c-mode').value='Cash';
-  document.getElementById('pay-o-mode').value='Cash';
-  toggleEditMode(false);
-  loadHistory(id);
+  if(!c){ alert('रेकर्ड फेला परेन। Refresh गरेर फेरि प्रयास गर्नुहोस्।'); return; }
+  // Modal पहिले खोल्ने — त्यसपछि content भर्ने (कुनै भाग fail भए पनि modal खुलोस्)
   document.getElementById('detail-modal').style.display='flex';
+  try {
+    fillModal(c);
+    document.getElementById('pay-c-add').value='';
+    document.getElementById('pay-o-add').value='';
+    document.getElementById('pay-c-remarks').value='';
+    document.getElementById('pay-o-remarks').value='';
+    document.getElementById('pay-c-mode').value='Cash';
+    document.getElementById('pay-o-mode').value='Cash';
+    toggleEditMode(false);
+    loadHistory(id);
+  } catch(err) {
+    console.error('openModal error:', err);
+    alert('विवरण देखाउँदा समस्या: ' + err.message + '\n\nScreenshot लिएर भन्नुहोस्।');
+  }
 }
 function closeModal(){ document.getElementById('detail-modal').style.display='none'; editingId=null; }
 
