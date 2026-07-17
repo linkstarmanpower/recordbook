@@ -48,6 +48,7 @@ header p{color:#cbd5e1;font-size:14px;}
 .badge-new{background:#e0e7ff;color:#4338ca;} .badge-pass{background:#dcfce7;color:#15803d;} .badge-fail{background:#fee2e2;color:#b91c1c;}
 .badge-info{background:#e0f2fe;color:#0369a1;} .badge-proc{background:#fef9c3;color:#a16207;}
 .badge-departed{background:#d1fae5;color:#065f46;} .badge-hold{background:#f3f4f6;color:#4b5563;}
+.badge-lead{background:#fce7f3;color:#a21caf;}
 .section-header{background-color:#f1f5f9;padding:10px 15px;font-weight:700;font-size:15px;margin-top:20px;margin-bottom:10px;border-left:5px solid var(--primary-color);display:flex;justify-content:space-between;}
 .section-header.visa-sec{border-left-color:var(--success);background-color:#f0fdf4;}
 .section-header.flight-sec{border-left-color:var(--info);background-color:#f0f9ff;}
@@ -120,12 +121,18 @@ body.staff-mode .admin-only{display:none !important;}
         <div class="header-actions">
             <button onclick="refreshData()">🔄 Refresh</button>
             <button class="admin-only" onclick="exportBackup()">💾 Backup लिनुहोस्</button>
-            <button onclick="window.print()">🖨️ Print</button>
+            <button onclick="printFiltered()">🖨️ Print (Filter अनुसार)</button>
+            <button onclick="exportExcel()">📊 Excel Download</button>
             <button class="admin-only" onclick="manageUsers()">👥 प्रयोगकर्ता व्यवस्थापन</button>
             <button onclick="openChangePass()">⚙️ मेरो Password बदल्ने</button>
             <button onclick="logout()">🚪 Logout (<span id="who-is-in"></span> - <span id="who-role"></span>)</button>
         </div>
     </header>
+
+    <div id="reminder-banner" style="display:none;background:#fef2f2;border:2px solid var(--danger);border-radius:10px;padding:15px;margin-bottom:20px;">
+        <div style="font-weight:700;color:var(--danger);margin-bottom:8px;">⏰ आजका / नाघेका Follow-up Reminder हरू</div>
+        <div id="reminder-list"></div>
+    </div>
 
     <div class="dashboard-grid">
         <div class="stat-card"><h3>कुल कामदार</h3><div class="value" id="dash-total">०</div></div>
@@ -135,8 +142,9 @@ body.staff-mode .admin-only{display:none !important;}
     </div>
 
     <div class="tab-navigation">
-        <button class="tab-btn active" onclick="switchTab(event,'tab-accounts')">💰 १. दर्ता फारम र हिसाब-किताब पेज</button>
-        <button class="tab-btn" onclick="switchTab(event,'tab-process')">🔄 २. कार्यप्रगति अटोमेसन पेज</button>
+        <button class="tab-btn active" onclick="switchTab(event,'tab-accounts')">💰 दर्ता फारम र हिसाब-किताब</button>
+        <button class="tab-btn" onclick="switchTab(event,'tab-process')">🔄 कार्यप्रगति बोर्ड</button>
+        <button class="tab-btn" onclick="switchTab(event,'tab-leads')">🔆 Lead (सम्भावित)</button>
     </div>
 
     <div id="tab-accounts" class="tab-content active">
@@ -191,6 +199,28 @@ body.staff-mode .admin-only{display:none !important;}
 
             <div class="section-header cancel-sec"><span>❌ ४. रद्द / डकुमेन्ट फिर्ता (CANCEL SECTION)</span><span class="count-tag" id="count-cancel">०</span></div>
             <div style="overflow-x:auto;"><table><thead><tr><th>नाम (पासपोर्ट)</th><th>रेफरल</th><th>देश (काम)</th><th>कैफियत</th><th>लिन बाँकी</th><th>विवरण</th></tr></thead><tbody id="table-cancel"></tbody></table></div>
+        </div>
+    </div>
+
+    <div id="tab-leads" class="tab-content">
+        <div class="card" style="border:2px solid #a21caf;">
+            <div class="card-title" style="color:#a21caf;">🔆 Lead — सम्भावित कामदार (अझै deal पक्का नभएका)</div>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:15px;">यहाँ कुरा चलिरहेका सम्भावित कामदार राख्नुहोस्। Deal पक्का भएपछि "प्रक्रियामा सार्ने" बटनले मुख्य सूचीमा जान्छ।</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
+                <input type="text" id="lead-name" class="form-control" style="flex:1;min-width:150px;" placeholder="नाम *">
+                <input type="text" id="lead-phone" class="form-control" style="flex:1;min-width:130px;" placeholder="फोन नम्बर">
+                <input type="text" id="lead-country" class="form-control" style="flex:1;min-width:120px;" placeholder="जाने देश">
+                <input type="text" id="lead-job" class="form-control" style="flex:1;min-width:120px;" placeholder="काम (Job)">
+                <input type="text" id="lead-source" class="form-control" style="flex:1;min-width:120px;" placeholder="कसरी थाहा (Ref)">
+                <button class="btn" style="width:auto;background:#a21caf;" onclick="addLead()">➕ Lead थप्नुहोस्</button>
+            </div>
+            <input type="text" id="search-lead" class="search-control" placeholder="🔍 Lead खोज्नुहोस्..." oninput="renderLeads()" style="border-color:#a21caf;background:#fdf4ff;">
+            <div style="overflow-x:auto;">
+                <table>
+                    <thead><tr><th>नाम</th><th>फोन</th><th>देश (काम)</th><th>Ref</th><th>Follow-up सम्झना</th><th>कार्य</th></tr></thead>
+                    <tbody id="lead-table-body"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -259,6 +289,7 @@ body.staff-mode .admin-only{display:none !important;}
                 <label style="font-weight:700;display:block;margin-bottom:5px;color:var(--primary-dark);">⚙️ कार्यप्रगति अवस्था अपडेट गर्नुहोस्:</label>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
                     <select id="update-stage-select" class="form-control" style="font-weight:600;flex:1;min-width:200px;">
+                        <option value="Lead">🔆 LEAD (कुरा चल्दैछ)</option>
                         <option value="New Entry">NEW ENTRY</option>
                         <option value="Medical Fit">MEDICAL FIT</option>
                         <option value="Medical Unfit">MEDICAL UNFIT</option>
@@ -287,6 +318,41 @@ body.staff-mode .admin-only{display:none !important;}
                 </div>
             </div>
             <div id="modal-basic-info" style="margin-bottom:15px;font-size:14px;"></div>
+            <div id="modal-contact-actions" style="margin-bottom:18px;"></div>
+
+            <div style="background:#fefce8;border:1px solid var(--warning);padding:15px;border-radius:8px;margin-bottom:20px;">
+                <label style="font-weight:700;display:block;margin-bottom:10px;">📄 कागजात Checklist <span id="docs-count" style="font-weight:400;color:var(--text-muted);"></span></label>
+                <div id="docs-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;margin-bottom:14px;"></div>
+                <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px;padding-top:10px;border-top:1px dashed var(--warning);">
+                    <div><label style="font-weight:700;font-size:13px;">🩺 मेडिकल (Online) भयो?</label>
+                        <select id="medical-done" class="form-control" style="margin-top:4px;">
+                            <option value="">— छान्नुहोस् —</option><option value="Yes">Yes (भयो)</option><option value="No">No (भएन)</option>
+                        </select>
+                    </div>
+                    <div><label style="font-weight:700;font-size:13px;">📚 Orientation (Online) भयो?</label>
+                        <select id="orientation-done" class="form-control" style="margin-top:4px;">
+                            <option value="">— छान्नुहोस् —</option><option value="Yes">Yes (भयो)</option><option value="No">No (भएन)</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn" style="background:var(--warning);width:auto;padding:8px 20px;" onclick="saveChecklist()">💾 Checklist सुरक्षित गर्नुहोस्</button>
+            </div>
+
+            <div style="background:#f0f9ff;border:1px solid var(--info);padding:15px;border-radius:8px;margin-bottom:20px;">
+                <label style="font-weight:700;display:block;margin-bottom:8px;">📞 Follow-up दर्ता (के भयो — कुरा/फोनको नतिजा)</label>
+                <textarea id="followup-note" class="form-control" rows="2" placeholder="उदा: फोन गरेँ, मेडिकल गर्न आउँछु भने; वा कागजात ल्याउन बाँकी छ"></textarea>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;align-items:flex-end;">
+                    <div><label style="font-weight:700;font-size:13px;">⏰ पुनः Follow-up मिति (Reminder)</label>
+                        <input type="date" id="reminder-date" class="form-control" style="margin-top:4px;"></div>
+                    <div style="flex:1;min-width:160px;"><label style="font-weight:700;font-size:13px;">Reminder कैफियत</label>
+                        <input type="text" id="reminder-note" class="form-control" style="margin-top:4px;" placeholder="उदा: मेडिकल रिपोर्ट सोध्ने"></div>
+                </div>
+                <button class="btn" style="background:var(--info);width:auto;padding:8px 20px;margin-top:10px;" onclick="saveFollowup()">💾 सुरक्षित गर्नुहोस्</button>
+                <div style="margin-top:12px;"><b style="font-size:13px;">📋 Follow-up History:</b>
+                    <div class="history-box" id="followup-history" style="max-height:140px;margin-top:6px;"></div>
+                </div>
+            </div>
+
             <div class="admin-only" style="display:flex;gap:10px;margin-bottom:20px;">
                 <button class="btn" onclick="toggleEditMode(true)">✏️ विवरण संशोधन गर्नुहोस्</button>
                 <button class="btn btn-danger" onclick="deleteCandidate()">🗑️ मेटाउनुहोस्</button>
@@ -535,6 +601,7 @@ document.getElementById('candidate-form').addEventListener('submit', function(e)
 // ================= RENDER =================
 function stageBadge(stage){
   const map = {
+    'Lead': ['badge-lead','LEAD'],
     'New Entry': ['badge-new','NEW ENTRY'],
     'Medical Fit': ['badge-pass','MEDICAL FIT'],
     'Medical Unfit': ['badge-fail','MEDICAL UNFIT'],
@@ -562,7 +629,7 @@ function stageBadge(stage){
   const m = map[stage] || ['badge-new', stage];
   return `<span class="badge ${m[0]}">${m[1]}</span>`;
 }
-const STAGE_ORDER = ['New Entry','Medical Fit','Medical Unfit','Interview Scheduled','Interview Completed','Interview Passed','Interview Failed','Applied','Job Offer Received','Offer Accepted','Offer Rejected','MOL Received','QVC Process','QVC Passed','QVC Failed','Visa Process','Visa Received','Ticket Process','Ticket Received','Departed','Hold','Cancelled','Withdrawn'];
+const STAGE_ORDER = ['Lead','New Entry','Medical Fit','Medical Unfit','Interview Scheduled','Interview Completed','Interview Passed','Interview Failed','Applied','Job Offer Received','Offer Accepted','Offer Rejected','MOL Received','QVC Process','QVC Passed','QVC Failed','Visa Process','Visa Received','Ticket Process','Ticket Received','Departed','Hold','Cancelled','Withdrawn'];
 const DONE_STAGES = ['Departed'];
 const CANCEL_STAGES = ['Medical Unfit','Interview Failed','Offer Rejected','QVC Failed','Cancelled','Withdrawn'];
 
@@ -573,20 +640,43 @@ function renderTable(){
   const sf = document.getElementById('status-filter')?.value || '';
 
   const filtered = candidates.filter(c =>
-    (!q || c.name.toLowerCase().includes(q) || c.passport.toLowerCase().includes(q) || (c.referredBy||'').toLowerCase().includes(q))
+    c.stage !== 'Lead'
+    && (!q || c.name.toLowerCase().includes(q) || c.passport.toLowerCase().includes(q) || (c.referredBy||'').toLowerCase().includes(q))
     && (!sf || c.stage === sf)
   );
 
-  let totalCDue=0, totalODue=0, totalMargin=0;
+  let totalCDue=0, totalODue=0, totalMargin=0, activeCount=0;
   candidates.forEach(c=>{
+    if(c.stage === 'Lead') return; // Lead हरू हिसाबमा गनिँदैनन्
+    activeCount++;
     totalCDue += Math.max(0,(c.cRate - c.cPaid));
     totalODue += Math.max(0,(c.oRate - c.oPaid));
     totalMargin += (c.cRate - c.oRate);
   });
-  document.getElementById('dash-total').textContent = candidates.length;
+  document.getElementById('dash-total').textContent = activeCount;
   document.getElementById('dash-candidate-due').textContent = fmt(totalCDue);
   document.getElementById('dash-office-due').textContent = fmt(totalODue);
   document.getElementById('dash-total-margin').textContent = fmt(totalMargin);
+
+  // ⏰ Reminder banner — आज वा नाघेका
+  const today = new Date().toISOString().slice(0,10);
+  const dueReminders = candidates.filter(c => c.nextReminder && c.nextReminder <= today
+    && c.stage !== 'Lead' && !DONE_STAGES.includes(c.stage) && !CANCEL_STAGES.includes(c.stage))
+    .sort((a,b)=> a.nextReminder.localeCompare(b.nextReminder));
+  const rb = document.getElementById('reminder-banner');
+  if(dueReminders.length){
+    rb.style.display = 'block';
+    document.getElementById('reminder-list').innerHTML = dueReminders.map(c=>{
+      const overdue = c.nextReminder < today;
+      return `<div style="padding:6px 0;border-bottom:1px dashed var(--border-color);">
+        <b>${c.name}</b> (${c.phone||'फोन छैन'}) — <span style="color:${overdue?'var(--danger)':'var(--warning)'};font-weight:700">${c.nextReminder}${overdue?' (नाघेको!)':' (आज)'}</span>
+        ${c.reminderNote ? ' — '+c.reminderNote : ''}
+        <button class="btn btn-sm" style="width:auto;padding:3px 10px;margin-left:8px;" onclick="openModal('${c.id}')">खोल्नुहोस्</button>
+        ${c.phone ? `<button class="btn btn-sm" style="background:#25D366;width:auto;padding:3px 10px;margin-left:4px;" onclick="waSend('${c.id}')">📱</button>` : ''}</div>`;
+    }).join('');
+  } else {
+    rb.style.display = 'none';
+  }
 
   const body = document.getElementById('candidate-table-body');
   body.innerHTML = filtered.map(c=>{
@@ -640,9 +730,68 @@ function renderTable(){
     <td>${c.remarks||'-'}</td><td class="${(c.cRate-c.cPaid)>0?'due-pos':'due-zero'}">${fmt(c.cRate-c.cPaid)}</td>
     <td><button class="btn btn-sm" onclick="openModal('${c.id}')">विवरण</button></td></tr>`).join('') ||
     `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">कुनै रेकर्ड छैन</td></tr>`;
+
+  renderLeads();
 }
 
-// ================= MODAL =================
+// ================= LEADS =================
+function renderLeads(){
+  const q = (document.getElementById('search-lead')?.value || '').toLowerCase();
+  const leads = candidates.filter(c => c.stage === 'Lead'
+    && (!q || c.name.toLowerCase().includes(q) || (c.phone||'').includes(q) || (c.country||'').toLowerCase().includes(q)));
+  const today = new Date().toISOString().slice(0,10);
+  document.getElementById('lead-table-body').innerHTML = leads.map(c=>{
+    const rem = c.nextReminder ? (c.nextReminder <= today
+      ? `<span style="color:var(--danger);font-weight:700">${c.nextReminder} ${c.nextReminder<today?'(नाघेको!)':'(आज)'}</span>`
+      : c.nextReminder) : '<span style="color:var(--text-muted)">—</span>';
+    return `<tr>
+      <td><b>${c.name}</b></td>
+      <td>${c.phone||'-'}</td>
+      <td>${c.country||'-'}${c.job?'<br><small>'+c.job+'</small>':''}</td>
+      <td>${c.referredBy||'-'}</td>
+      <td>${rem}${c.reminderNote?'<br><small>'+c.reminderNote+'</small>':''}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-sm" onclick="openModal('${c.id}')">हेर्नुहोस्</button>
+        ${c.phone?`<button class="btn btn-sm" style="background:#25D366;padding:5px 8px;" onclick="waSend('${c.id}')">📱</button>`:''}
+        <button class="btn btn-sm" style="background:var(--success);padding:5px 8px;" onclick="promoteLead('${c.id}')" title="प्रक्रियामा सार्ने">➡️</button>
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">कुनै Lead छैन</td></tr>`;
+}
+
+async function addLead(){
+  const name = document.getElementById('lead-name').value.trim();
+  if(!name){ alert('Lead को नाम भर्नुहोस्।'); return; }
+  const c = {
+    name,
+    passport: 'LEAD-' + Date.now(),  // Lead मा पासपोर्ट नहुन सक्छ — अस्थायी
+    referredBy: document.getElementById('lead-source').value.trim() || 'Direct',
+    phone: document.getElementById('lead-phone').value.trim(),
+    job: document.getElementById('lead-job').value.trim(),
+    country: document.getElementById('lead-country').value.trim(),
+    office: '', cRate: 0, oRate: 0, stage: 'Lead'
+  };
+  const r = await api('add', { candidate: c }, null, true);
+  if(r.ok){
+    candidates.push(r.candidate);
+    ['lead-name','lead-phone','lead-country','lead-job','lead-source'].forEach(id=>document.getElementById(id).value='');
+    renderLeads();
+    alert('✅ Lead थपियो।');
+  } else {
+    alert('थप्न सकिएन: ' + (r.error||''));
+  }
+}
+
+async function promoteLead(id){
+  const c = candidates.find(x=>x.id===id);
+  if(!c) return;
+  if(!confirm(c.name + ' लाई प्रक्रियामा (NEW ENTRY) सार्ने? यसपछि मुख्य सूचीमा देखिन्छ।\n\n(पासपोर्ट, रेट जस्ता विवरण "हेर्नुहोस्" खोलेर भर्नुहोला।)')) return;
+  const r = await api('stage', { id: c.id, stage: 'New Entry' }, null, true);
+  if(r.ok && r.candidate){
+    mergeCandidate(r.candidate);
+    alert('✅ ' + c.name + ' अब मुख्य सूचीमा (NEW ENTRY) छ। पासपोर्ट/रेट भर्न "दर्ता फारम" ट्याबको सूचीबाट खोल्नुहोस्।');
+  } else syncFailed(r, 'Lead सार्ने');
+}
 function fillModal(c){
   document.getElementById('modal-title').textContent = c.name + ' — विवरण';
   document.getElementById('update-stage-select').value = c.stage;
@@ -652,8 +801,113 @@ function fillModal(c){
     <b>💵 तलब:</b> ${c.salary || '-'} &nbsp; | &nbsp; <b>🕐 ड्युटी समय:</b> ${c.dutyHours || '-'}<br>
     <b>कामदार रेट:</b> ${fmt(c.cRate)} (तिरेको: ${fmt(c.cPaid)}, बाँकी: ${fmt(c.cRate-c.cPaid)})<br>
     <b>अफिस रेट:</b> ${fmt(c.oRate)} (तिरेको: ${fmt(c.oPaid)}, बाँकी: ${fmt(c.oRate-c.oPaid)})<br>
-    <b>✈️ उडान मिति:</b> ${c.flightDate ? '<span style="color:var(--info);font-weight:700">'+c.flightDate+'</span>' : '<span style="color:var(--warning)">तोकिएको छैन</span>'}`;
+    <b>✈️ उडान मिति:</b> ${c.flightDate ? '<span style="color:var(--info);font-weight:700">'+c.flightDate+'</span>' : '<span style="color:var(--warning)">तोकिएको छैन</span>'}<br>
+    <b>🩺 मेडिकल:</b> ${medBadge(c.medicalDone)} &nbsp; | &nbsp; <b>📚 Orientation:</b> ${medBadge(c.orientationDone)}`;
+  // Checklist render
+  const docs = c.docs || {};
+  document.getElementById('docs-grid').innerHTML = DOC_ITEMS.map(d=>`
+    <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;padding:5px 8px;border-radius:6px;">
+      <input type="checkbox" id="doc-${d.key}" ${docs[d.key]?'checked':''} style="width:17px;height:17px;"> ${d.label}</label>`).join('');
+  const got = DOC_ITEMS.filter(d=>docs[d.key]).length;
+  document.getElementById('docs-count').textContent = `(${got}/${DOC_ITEMS.length} प्राप्त)`;
+  document.getElementById('medical-done').value = c.medicalDone || '';
+  document.getElementById('orientation-done').value = c.orientationDone || '';
+  // Contact quick actions
+  const ca = document.getElementById('modal-contact-actions');
+  if(c.phone && c.phone.trim()){
+    ca.innerHTML = `
+      <button class="btn btn-sm" style="background:#25D366;width:auto;padding:8px 16px;margin-right:8px;" onclick="waSend('${c.id}')">📱 WhatsApp</button>
+      <a href="tel:${waNumber(c.phone)}" class="btn btn-sm" style="background:var(--info);width:auto;padding:8px 16px;text-decoration:none;">📞 Call गर्नुहोस्</a>`;
+  } else {
+    ca.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">📱 फोन नम्बर नभएकाले WhatsApp/Call उपलब्ध छैन</span>';
+  }
+  // Follow-up fields
+  document.getElementById('followup-note').value = '';
+  document.getElementById('reminder-date').value = c.nextReminder || '';
+  document.getElementById('reminder-note').value = c.reminderNote || '';
+  const fups = (c.followups||[]).slice().reverse();
+  document.getElementById('followup-history').innerHTML = fups.map(f=>
+    `<div class="history-item"><b>${(f.time||'').slice(0,16)}</b> (${f.user}) — ${f.note}</div>`
+  ).join('') || '<div style="color:var(--text-muted)">कुनै follow-up दर्ता छैन</div>';
   renderPayments(c.id);
+}
+
+// ================= WHATSAPP / CALL =================
+// फोन नम्बरलाई अन्तर्राष्ट्रिय format मा (नेपाली भए +977)
+function waNumber(phone){
+  let n = String(phone||'').replace(/[^0-9+]/g,'');
+  if(n.startsWith('+')) return n.slice(1);
+  n = n.replace(/^0+/,''); // अगाडिको 0 हटाउने
+  if(n.length === 10 && (n.startsWith('98')||n.startsWith('97'))) return '977'+n; // नेपाली मोबाइल
+  if(n.startsWith('977')) return n;
+  return n; // विदेशी नम्बर भए जस्ताको तस्तै
+}
+const WA_TEMPLATES = [
+  {label:'खाली (आफै लेख्ने)', text:''},
+  {label:'Interview मिति सूचना', text:'नमस्ते {name} जी, तपाईंको Interview मिति तय भएको छ। कृपया समयमै सम्पर्कमा रहनुहोला। — Link Star Manpower'},
+  {label:'Interview PASS भयो', text:'बधाई छ {name} जी! 🎉 तपाईं Interview मा पास हुनुभयो। अगाडिको प्रक्रियाको लागि छिट्टै सम्पर्क गर्नेछौं। — Link Star Manpower'},
+  {label:'Interview FAIL भयो', text:'नमस्ते {name} जी, यस पटकको Interview मा सफल हुन सक्नुभएन। निराश नहुनुहोला, अर्को अवसरको लागि सम्पर्कमा रहनुहोला। — Link Star Manpower'},
+  {label:'Medical FIT आयो', text:'नमस्ते {name} जी, तपाईंको मेडिकल रिपोर्ट FIT आएको छ। ✅ अगाडिको प्रक्रिया बढाउँदैछौं। — Link Star Manpower'},
+  {label:'Medical UNFIT आयो', text:'नमस्ते {name} जी, तपाईंको मेडिकल रिपोर्टमा केही समस्या देखियो (UNFIT)। थप जानकारीको लागि कृपया सम्पर्क गर्नुहोला। — Link Star Manpower'},
+  {label:'मेडिकल गर्न आउने सूचना', text:'नमस्ते {name} जी, तपाईंको मेडिकल जाँच गर्ने मिति नजिकिँदैछ। कृपया समयमा आउनुहोला। — Link Star Manpower'},
+  {label:'कागजात माग', text:'नमस्ते {name} जी, तपाईंको प्रक्रिया अगाडि बढाउन केही कागजात बाँकी छ। कृपया चाँडै पठाइदिनुहोला। — Link Star Manpower'},
+  {label:'उडान मिति सूचना', text:'नमस्ते {name} जी, तपाईंको उडान मिति {flight} तय भएको छ। ✈️ तयारी सम्बन्धी जानकारीको लागि सम्पर्कमा रहनुहोला। — Link Star Manpower'},
+  {label:'सामान्य सम्पर्क', text:'नमस्ते {name} जी, Link Star Manpower बाट सम्पर्क गरेको हो। कृपया सम्पर्क गर्नुहोला।'}
+];
+function waSend(id){
+  const c = candidates.find(x=>x.id===id);
+  if(!c || !c.phone){ alert('फोन नम्बर छैन।'); return; }
+  const num = waNumber(c.phone);
+  // Template छान्ने
+  let msg = '';
+  const list = WA_TEMPLATES.map((t,i)=>`${i}. ${t.label}`).join('\n');
+  const pick = prompt('कुन message पठाउने? नम्बर लेख्नुहोस्:\n\n'+list, '0');
+  if(pick === null) return;
+  const t = WA_TEMPLATES[Number(pick)] || WA_TEMPLATES[0];
+  msg = t.text.replace('{name}', c.name).replace('{flight}', c.flightDate||'—');
+  if(!msg){ msg = prompt('Message लेख्नुहोस्:', '') || ''; }
+  const url = 'https://wa.me/' + num + (msg ? '?text=' + encodeURIComponent(msg) : '');
+  window.open(url, '_blank');
+}
+
+const DOC_ITEMS = [
+  {key:'ppCopy', label:'पासपोर्ट प्रति'},
+  {key:'photo', label:'फोटो (PP Size)'},
+  {key:'citizenship', label:'नागरिकता'},
+  {key:'cv', label:'CV / बायोडाटा'},
+  {key:'experience', label:'अनुभव पत्र'},
+  {key:'police', label:'Police Report'},
+  {key:'medical', label:'मेडिकल रिपोर्ट'},
+  {key:'training', label:'तालिम प्रमाणपत्र'}
+];
+function medBadge(v){
+  if(v==='Yes') return '<span class="badge badge-pass">Yes ✓</span>';
+  if(v==='No') return '<span class="badge badge-fail">No ✗</span>';
+  return '<span class="badge badge-hold">—</span>';
+}
+async function saveChecklist(){
+  const c = candidates.find(x=>x.id===editingId);
+  if(!c) return;
+  const docs = {};
+  DOC_ITEMS.forEach(d=>{ docs[d.key] = document.getElementById('doc-'+d.key).checked; });
+  const medicalDone = document.getElementById('medical-done').value;
+  const orientationDone = document.getElementById('orientation-done').value;
+  c.docs = docs; c.medicalDone = medicalDone; c.orientationDone = orientationDone;
+  fillModal(c);
+  const r = await api('checklist', { id: c.id, docs, medicalDone, orientationDone }, null, true);
+  if(r.ok && r.candidate){ mergeCandidate(r.candidate); alert('✅ Checklist सुरक्षित भयो।'); }
+  else syncFailed(r, 'Checklist');
+}
+async function saveFollowup(){
+  const c = candidates.find(x=>x.id===editingId);
+  if(!c) return;
+  const note = document.getElementById('followup-note').value.trim();
+  const nextReminder = document.getElementById('reminder-date').value;
+  const reminderNote = document.getElementById('reminder-note').value.trim();
+  if(!note && !nextReminder){ alert('Follow-up कुरा वा Reminder मिति — कम्तिमा एउटा भर्नुहोस्।'); return; }
+  const r = await api('followup', { id: c.id, note, nextReminder, reminderNote }, null, true);
+  if(r.ok && r.candidate){ mergeCandidate(r.candidate); fillModal(r.candidate); alert('✅ सुरक्षित भयो।'); }
+  else syncFailed(r, 'Follow-up');
 }
 
 function openModal(id){
@@ -833,6 +1087,74 @@ function deleteCandidate(){
 }
 
 // ================= BACKUP =================
+// ================= FILTER HELPER (for print/excel) =================
+function getFilteredList(){
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const sf = document.getElementById('status-filter')?.value || '';
+  return candidates.filter(c =>
+    (!q || c.name.toLowerCase().includes(q) || c.passport.toLowerCase().includes(q) || (c.referredBy||'').toLowerCase().includes(q))
+    && (!sf || c.stage === sf)
+  );
+}
+function filterLabel(){
+  const q = (document.getElementById('search-input')?.value || '').trim();
+  const sf = document.getElementById('status-filter')?.value || '';
+  let parts = [];
+  if(sf) parts.push('Status: ' + stageBadge(sf).replace(/<[^>]+>/g,''));
+  if(q) parts.push('खोज: "'+q+'"');
+  return parts.length ? parts.join(' | ') : 'सबै कामदार';
+}
+
+// ================= PRINT (filter अनुसार) =================
+function printFiltered(){
+  const rows = getFilteredList();
+  if(!rows.length){ alert('Print गर्ने कुनै रेकर्ड छैन।'); return; }
+  const showMoney = isAdmin();
+  const win = window.open('', '_blank');
+  const rowsHtml = rows.map((c,i)=>`<tr>
+    <td>${i+1}</td><td>${c.name}</td><td>${c.passport}</td><td>${c.phone||'-'}</td>
+    <td>${c.country}/${c.job}</td><td>${stageBadge(c.stage).replace(/<[^>]+>/g,'')}</td>
+    <td>${c.flightDate||'-'}</td>
+    ${showMoney ? `<td style="text-align:right">${(c.cRate-c.cPaid).toLocaleString('en-IN')}</td>` : ''}
+  </tr>`).join('');
+  win.document.write(`<html><head><meta charset="UTF-8"><title>Master Records</title>
+    <style>body{font-family:'Segoe UI',sans-serif;padding:20px;}h2{margin-bottom:2px;}
+    .meta{color:#555;font-size:13px;margin-bottom:12px;border-bottom:2px solid #333;padding-bottom:8px;}
+    table{width:100%;border-collapse:collapse;font-size:13px;}th,td{border:1px solid #999;padding:6px 8px;text-align:left;}th{background:#eee;}</style>
+    </head><body>
+    <h2>Master Records — वैदेशिक रोजगार कामदार</h2>
+    <div class="meta">${filterLabel()} &nbsp;|&nbsp; जम्मा: ${rows.length} जना &nbsp;|&nbsp; मिति: ${new Date().toLocaleString()}</div>
+    <table><thead><tr><th>#</th><th>नाम</th><th>पासपोर्ट</th><th>फोन</th><th>देश/काम</th><th>Status</th><th>उडान मिति</th>${showMoney?'<th>लिन बाँकी</th>':''}</tr></thead>
+    <tbody>${rowsHtml}</tbody></table>
+    </body></html>`);
+  win.document.close();
+  setTimeout(()=>win.print(), 400);
+}
+
+// ================= EXCEL DOWNLOAD (filter अनुसार, CSV) =================
+function exportExcel(){
+  const rows = getFilteredList();
+  if(!rows.length){ alert('Download गर्ने कुनै रेकर्ड छैन।'); return; }
+  const showMoney = isAdmin();
+  let headers = ['नाम','पासपोर्ट','रेफरल','फोन','देश','काम','अफिस','तलब','Status','उडान मिति','मेडिकल','Orientation','कैफियत'];
+  if(showMoney) headers = headers.concat(['कामदार रेट','तिरेको','लिन बाँकी','अफिस रेट','अफिस तिरेको','अफिस बाँकी']);
+  const esc = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
+  const lines = [headers.map(esc).join(',')];
+  rows.forEach(c=>{
+    let row = [c.name,c.passport,c.referredBy,c.phone,c.country,c.job,c.office,c.salary,
+      stageBadge(c.stage).replace(/<[^>]+>/g,''),c.flightDate,c.medicalDone,c.orientationDone,c.remarks];
+    if(showMoney) row = row.concat([c.cRate,c.cPaid,(c.cRate-c.cPaid),c.oRate,c.oPaid,(c.oRate-c.oPaid)]);
+    lines.push(row.map(esc).join(','));
+  });
+  const blob = new Blob(['\ufeff'+lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'master-records-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function exportBackup(){
   if(!isAdmin()){ alert('Backup लिने अधिकार Admin लाई मात्र छ।'); return; }
   const backup = { candidates, exportedAt: new Date().toISOString() };
