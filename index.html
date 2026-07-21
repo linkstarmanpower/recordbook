@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Master Records - वैदेशिक रोजगार कामदार रेकर्ड व्यवस्थापन प्रणाली</title>
+<title>Master Records — Worker Record Management</title>
 <style>
 :root{
   --primary-color:#2563eb; --primary-dark:#1d4ed8; --secondary-color:#0f172a;
@@ -85,16 +85,16 @@ body.staff-mode .admin-only{display:none !important;}
 </head>
 <body>
 
-<div id="loading-overlay"><div class="spinner">⏳ कृपया पर्खनुहोस्...</div></div>
-<div id="sync-badge">🔄 Server मा Sync हुँदैछ...</div>
+<div id="loading-overlay"><div class="spinner">⏳ Please wait...</div></div>
+<div id="sync-badge">🔄 Syncing...</div>
 
 <!-- SETUP SCREEN (पहिलो पटक मात्र) -->
 <div id="setup-screen" style="display:none;">
   <div class="card">
-    <div class="card-title">🔗 Server URL सेटअप</div>
-    <p style="font-size:13px;margin-bottom:15px;">Google Apps Script deploy गरेपछि पाएको <b>Web App URL</b> यहाँ paste गर्नुहोस् (एक पटक मात्र गर्नुपर्छ):</p>
+    <div class="card-title">🔗 Server URL Setup</div>
+    <p style="font-size:13px;margin-bottom:15px;">The <b>Web App URL</b> from your Google Apps Script deployment यहाँ paste गर्नुहोस् (एक पटक मात्र गर्नुपर्छ):</p>
     <div class="form-group"><input type="text" id="setup-url" class="form-control" placeholder="https://script.google.com/macros/s/XXXX/exec"></div>
-    <button class="btn" onclick="saveApiUrl()">सुरक्षित गर्नुहोस्</button>
+    <button class="btn" onclick="saveApiUrl()">Save</button>
     <p id="setup-error" style="color:var(--danger);font-size:13px;margin-top:8px;"></p>
   </div>
 </div>
@@ -102,13 +102,13 @@ body.staff-mode .admin-only{display:none !important;}
 <!-- LOGIN SCREEN -->
 <div id="login-screen" style="display:none;">
   <div class="card">
-    <div class="card-title">🔐 लगइन गर्नुहोस् <span class="online-tag">Online</span></div>
+    <div class="card-title">🔐 Login <span class="online-tag">Online</span></div>
     <div class="form-group"><label>Username</label><input type="text" id="login-user" class="form-control" placeholder="admin"></div>
     <div class="form-group"><label>Password</label><input type="password" id="login-pass" class="form-control" placeholder="password" onkeydown="if(event.key==='Enter')doLogin()"></div>
-    <button class="btn" onclick="doLogin()">लगइन गर्नुहोस्</button>
-    <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">पहिलो पटक: Username <b>admin</b>, Password <b>admin123</b>। Login गरेपछि तुरुन्तै password बदल्नुहोस्।</p>
+    <button class="btn" onclick="doLogin()">Login</button>
+    <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">First time: Username <b>admin</b>, Password <b>admin123</b>। Login गरेपछि तुरुन्तै password बदल्नुहोस्।</p>
     <p id="login-error" style="color:var(--danger);font-size:13px;margin-top:8px;"></p>
-    <p style="font-size:12px;margin-top:12px;"><a href="#" onclick="changeApiUrl();return false;" style="color:var(--text-muted);">🔗 Server URL बदल्ने</a></p>
+    <p style="font-size:12px;margin-top:12px;"><a href="#" onclick="changeApiUrl();return false;" style="color:var(--text-muted);">Change Server URL</a></p>
   </div>
 </div>
 
@@ -116,66 +116,66 @@ body.staff-mode .admin-only{display:none !important;}
     <header>
         <div>
             <h1>Master Records <span class="online-tag">Online</span> <span style="font-size:11px;opacity:0.6;">v2.1</span></h1>
-            <p>वैदेशिक रोजगार कामदार रेकर्ड व्यवस्थापन प्रणाली</p>
+            <p>Foreign Employment Worker Record Management</p>
         </div>
         <div class="header-actions">
             <button onclick="refreshData()">🔄 Refresh</button>
-            <button class="admin-only" onclick="exportBackup()">💾 Backup लिनुहोस्</button>
-            <button onclick="printFiltered()">🖨️ Print (Filter अनुसार)</button>
+            <button class="admin-only" onclick="exportBackup()">💾 Backup</button>
+            <button onclick="printFiltered()">🖨️ Print</button>
             <button onclick="exportExcel()">📊 Excel Download</button>
-            <button class="admin-only" onclick="manageUsers()">👥 प्रयोगकर्ता व्यवस्थापन</button>
-            <button onclick="openChangePass()">⚙️ मेरो Password बदल्ने</button>
+            <button class="admin-only" onclick="manageUsers()">👥 Users</button>
+            <button onclick="openChangePass()">⚙️ Password</button>
             <button onclick="logout()">🚪 Logout (<span id="who-is-in"></span> - <span id="who-role"></span>)</button>
         </div>
     </header>
 
     <div id="reminder-banner" style="display:none;background:#fef2f2;border:2px solid var(--danger);border-radius:10px;padding:15px;margin-bottom:20px;">
-        <div style="font-weight:700;color:var(--danger);margin-bottom:8px;">⏰ आजका / नाघेका Follow-up Reminder हरू</div>
+        <div style="font-weight:700;color:var(--danger);margin-bottom:8px;">⏰ Today's / Overdue Follow-up Reminder हरू</div>
         <div id="reminder-list"></div>
     </div>
 
     <div class="dashboard-grid">
-        <div class="stat-card"><h3>कुल कामदार</h3><div class="value" id="dash-total">०</div></div>
-        <div class="stat-card due admin-only"><h3>कामदारबाट लिन बाँकी (DUE)</h3><div class="value" id="dash-candidate-due">रु ०</div></div>
-        <div class="stat-card due admin-only"><h3>अफिसलाई बुझाउन बाँकी</h3><div class="value" id="dash-office-due">रु ०</div></div>
-        <div class="stat-card profit admin-only"><h3>अनुमानित खुद नाफा (TOTAL MARGIN)</h3><div class="value" id="dash-total-margin">रु ०</div></div>
+        <div class="stat-card"><h3>Total Workers</h3><div class="value" id="dash-total">0</div></div>
+        <div class="stat-card due admin-only"><h3>Receivable (DUE)</h3><div class="value" id="dash-candidate-due">रु 0</div></div>
+        <div class="stat-card due admin-only"><h3>Payable to Office</h3><div class="value" id="dash-office-due">रु 0</div></div>
+        <div class="stat-card profit admin-only"><h3>Est. Margin (TOTAL)</h3><div class="value" id="dash-total-margin">रु 0</div></div>
     </div>
 
     <div class="tab-navigation">
-        <button class="tab-btn active" onclick="switchTab(event,'tab-accounts')">💰 दर्ता फारम र हिसाब-किताब</button>
-        <button class="tab-btn" onclick="switchTab(event,'tab-process')">🔄 कार्यप्रगति बोर्ड</button>
-        <button class="tab-btn" onclick="switchTab(event,'tab-leads')">🔆 Lead (सम्भावित)</button>
+        <button class="tab-btn active" onclick="switchTab(event,'tab-accounts')">💰 Records & Accounts</button>
+        <button class="tab-btn" onclick="switchTab(event,'tab-process')">🔄 Process Board</button>
+        <button class="tab-btn" onclick="switchTab(event,'tab-leads')">🔆 Lead</button>
     </div>
 
     <div id="tab-accounts" class="tab-content active">
         <div class="main-grid">
             <div class="card">
-                <div class="card-title">नयाँ कामदार इन्ट्री फारम</div>
+                <div class="card-title">New Worker Entry</div>
                 <form id="candidate-form">
-                    <div class="form-group"><label>कामदारको नाम *</label><input type="text" id="name" class="form-control" required></div>
-                    <div class="form-group"><label>पासपोर्ट नम्बर *</label><input type="text" id="passport" class="form-control" required></div>
-                    <div class="form-group"><label>Referred By *</label><input type="text" id="referred-by" class="form-control" required placeholder="Direct वा साथीको नाम"></div>
-                    <div class="form-group"><label>फोन नम्बर</label><input type="text" id="phone" class="form-control"></div>
+                    <div class="form-group"><label>Worker Name *</label><input type="text" id="name" class="form-control" required></div>
+                    <div class="form-group"><label>Passport Number *</label><input type="text" id="passport" class="form-control" required></div>
+                    <div class="form-group"><label>Referred By *</label><input type="text" id="referred-by" class="form-control" required placeholder="Direct / friend's name"></div>
+                    <div class="form-group"><label>Phone Number</label><input type="text" id="phone" class="form-control"></div>
                     <div class="form-group"><label>Job Title *</label><input type="text" id="job" class="form-control" required></div>
-                    <div class="form-group"><label>जाने देश *</label><input type="text" id="country" class="form-control" required></div>
-                    <div class="form-group"><label>Office / मेनपावर *</label><input type="text" id="office-name" class="form-control" required></div>
-                    <div class="form-group"><label>तलब (Salary)</label><input type="text" id="salary" class="form-control" placeholder="उदा: 1500 RM वा 120 KD"></div>
-                    <div class="form-group"><label>ड्युटी समय (Duty Hours)</label><input type="text" id="duty-hours" class="form-control" placeholder="उदा: 8 घण्टा + OT"></div>
-                    <div class="form-group"><label>Candidate Rate (कुल लिने रकम) *</label><input type="number" id="c-rate" class="form-control" required></div>
-                    <div class="form-group"><label>Office Rate (अफिसलाई तिर्ने रकम) *</label><input type="number" id="o-rate" class="form-control" required></div>
-                    <button type="submit" class="btn">डाटा सुरक्षित गर्नुहोस्</button>
+                    <div class="form-group"><label>Country *</label><input type="text" id="country" class="form-control" required></div>
+                    <div class="form-group"><label>Office / Manpower *</label><input type="text" id="office-name" class="form-control" required></div>
+                    <div class="form-group"><label>Salary</label><input type="text" id="salary" class="form-control" placeholder="e.g. 1500 RM / 120 KD"></div>
+                    <div class="form-group"><label>Duty Hours</label><input type="text" id="duty-hours" class="form-control" placeholder="e.g. 8 hrs + OT"></div>
+                    <div class="form-group"><label>Candidate Rate (Total) *</label><input type="number" id="c-rate" class="form-control" required></div>
+                    <div class="form-group"><label>Office Rate (Payable) *</label><input type="number" id="o-rate" class="form-control" required></div>
+                    <button type="submit" class="btn">Save Data</button>
                 </form>
             </div>
 
             <div class="card">
-                <div class="card-title">कामदारहरूको सूची र वर्तमान हिसाब स्थिति</div>
+                <div class="card-title">Worker List & Account Status</div>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                    <input type="text" id="search-input" class="search-control" style="flex:1;min-width:220px;" placeholder="🔍 नाम, पासपोर्ट नम्बर वा रेफर गर्नेको नामबाट खोज्नुहोस्..." oninput="renderTable()">
+                    <input type="text" id="search-input" class="search-control" style="flex:1;min-width:220px;" placeholder="🔍 Search by name, passport, or referral..." oninput="renderTable()">
                     <select id="status-filter" class="form-control" style="width:auto;min-width:180px;margin-bottom:15px;font-weight:600;" onchange="renderTable()"></select>
                 </div>
                 <div style="overflow-x:auto;">
                     <table>
-                        <thead><tr><th>नाम (पासपोर्ट)</th><th>रेफरल (By)</th><th>देश (काम)</th><th>Status</th><th>लिन बाँकी (Due)</th><th>अफिस Due</th><th>हिसाब</th></tr></thead>
+                        <thead><tr><th>Name (Passport)</th><th>Referral</th><th>Country (Job)</th><th>Status</th><th>Receivable</th><th>Office Due</th><th>Account</th></tr></thead>
                         <tbody id="candidate-table-body"></tbody>
                     </table>
                 </div>
@@ -185,39 +185,39 @@ body.staff-mode .admin-only{display:none !important;}
 
     <div id="tab-process" class="tab-content">
         <div class="card">
-            <div class="card-title">स्वचालित कार्यप्रगति व्यवस्थापन बोर्ड</div>
-            <input type="text" id="search-input-proc" class="search-control" placeholder="🔍 प्रोसेसिङ पेजमा खोज्नुहोस्..." oninput="renderTable()">
+            <div class="card-title">Process Management Board</div>
+            <input type="text" id="search-input-proc" class="search-control" placeholder="🔍 Search process board..." oninput="renderTable()">
 
-            <div class="section-header"><span>📁 १. प्रक्रियामा रहेका (पासपोर्ट → अन्तर्वार्ता → मेडिकल → अफर → भिसा प्रक्रिया)</span><span class="count-tag" id="count-processing">०</span></div>
-            <div style="overflow-x:auto;"><table><thead><tr><th>नाम (पासपोर्ट)</th><th>रेफरल</th><th>देश (काम)</th><th>अवस्था</th><th>लिन बाँकी</th><th>अपडेट</th></tr></thead><tbody id="table-processing"></tbody></table></div>
+            <div class="section-header"><span>📁 In Process</span><span class="count-tag" id="count-processing">0</span></div>
+            <div style="overflow-x:auto;"><table><thead><tr><th>Name (Passport)</th><th>Referral</th><th>Country (Job)</th><th>Status</th><th>Receivable</th><th>Update</th></tr></thead><tbody id="table-processing"></tbody></table></div>
 
-            <div class="section-header visa-sec"><span>🎯 २. भिसा प्राप्त (Visa Received / Ticket Pending)</span><span class="count-tag" id="count-visa">०</span></div>
-            <div style="overflow-x:auto;"><table><thead><tr><th>नाम (पासपोर्ट)</th><th>रेफरल</th><th>देश (काम)</th><th>अवस्था</th><th>उडान मिति</th><th>लिन बाँकी</th><th>अपडेट</th></tr></thead><tbody id="table-visa"></tbody></table></div>
+            <div class="section-header visa-sec"><span>🎯 Visa Received / Ticket Pending</span><span class="count-tag" id="count-visa">0</span></div>
+            <div style="overflow-x:auto;"><table><thead><tr><th>Name (Passport)</th><th>Referral</th><th>Country (Job)</th><th>Status</th><th>Flight Date</th><th>Receivable</th><th>Update</th></tr></thead><tbody id="table-visa"></tbody></table></div>
 
-            <div class="section-header flight-sec"><span>✈️ ३. उडान भइसकेका (DEPARTURE SECTION)</span><span class="count-tag" id="count-flown">०</span></div>
-            <div style="overflow-x:auto;"><table><thead><tr><th>नाम (पासपोर्ट)</th><th>रेफरल</th><th>देश (काम)</th><th>उडान मिति</th><th>लिन बाँकी</th><th>विवरण</th></tr></thead><tbody id="table-flown"></tbody></table></div>
+            <div class="section-header flight-sec"><span>✈️ Departed</span><span class="count-tag" id="count-flown">0</span></div>
+            <div style="overflow-x:auto;"><table><thead><tr><th>Name (Passport)</th><th>Referral</th><th>Country (Job)</th><th>Flight Date</th><th>Receivable</th><th>Detail</th></tr></thead><tbody id="table-flown"></tbody></table></div>
 
-            <div class="section-header cancel-sec"><span>❌ ४. रद्द / डकुमेन्ट फिर्ता (CANCEL SECTION)</span><span class="count-tag" id="count-cancel">०</span></div>
-            <div style="overflow-x:auto;"><table><thead><tr><th>नाम (पासपोर्ट)</th><th>रेफरल</th><th>देश (काम)</th><th>कैफियत</th><th>लिन बाँकी</th><th>विवरण</th></tr></thead><tbody id="table-cancel"></tbody></table></div>
+            <div class="section-header cancel-sec"><span>❌ Cancelled / Withdrawn</span><span class="count-tag" id="count-cancel">0</span></div>
+            <div style="overflow-x:auto;"><table><thead><tr><th>Name (Passport)</th><th>Referral</th><th>Country (Job)</th><th>Remarks</th><th>Receivable</th><th>Detail</th></tr></thead><tbody id="table-cancel"></tbody></table></div>
         </div>
     </div>
 
     <div id="tab-leads" class="tab-content">
         <div class="card" style="border:2px solid #a21caf;">
-            <div class="card-title" style="color:#a21caf;">🔆 Lead — सम्भावित कामदार (अझै deal पक्का नभएका)</div>
-            <p style="font-size:13px;color:var(--text-muted);margin-bottom:15px;">यहाँ कुरा चलिरहेका सम्भावित कामदार राख्नुहोस्। Deal पक्का भएपछि "प्रक्रियामा सार्ने" बटनले मुख्य सूचीमा जान्छ।</p>
+            <div class="card-title" style="color:#a21caf;">🔆 Lead — Potential Workers</div>
+            <p style="font-size:13px;color:var(--text-muted);margin-bottom:15px;">Keep potential workers here. Once the deal is confirmed, the "Move to Process" button sends them to the main list.</p>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:15px;">
-                <input type="text" id="lead-name" class="form-control" style="flex:1;min-width:150px;" placeholder="नाम *">
-                <input type="text" id="lead-phone" class="form-control" style="flex:1;min-width:130px;" placeholder="फोन नम्बर">
-                <input type="text" id="lead-country" class="form-control" style="flex:1;min-width:120px;" placeholder="जाने देश">
-                <input type="text" id="lead-job" class="form-control" style="flex:1;min-width:120px;" placeholder="काम (Job)">
-                <input type="text" id="lead-source" class="form-control" style="flex:1;min-width:120px;" placeholder="कसरी थाहा (Ref)">
-                <button class="btn" style="width:auto;background:#a21caf;" onclick="addLead()">➕ Lead थप्नुहोस्</button>
+                <input type="text" id="lead-name" class="form-control" style="flex:1;min-width:150px;" placeholder="Name *">
+                <input type="text" id="lead-phone" class="form-control" style="flex:1;min-width:130px;" placeholder="Phone">
+                <input type="text" id="lead-country" class="form-control" style="flex:1;min-width:120px;" placeholder="Country">
+                <input type="text" id="lead-job" class="form-control" style="flex:1;min-width:120px;" placeholder="Job">
+                <input type="text" id="lead-source" class="form-control" style="flex:1;min-width:120px;" placeholder="Source (Ref)">
+                <button class="btn" style="width:auto;background:#a21caf;" onclick="addLead()">➕ Add Lead</button>
             </div>
-            <input type="text" id="search-lead" class="search-control" placeholder="🔍 Lead खोज्नुहोस्..." oninput="renderLeads()" style="border-color:#a21caf;background:#fdf4ff;">
+            <input type="text" id="search-lead" class="search-control" placeholder="🔍 Search leads..." oninput="renderLeads()" style="border-color:#a21caf;background:#fdf4ff;">
             <div style="overflow-x:auto;">
                 <table>
-                    <thead><tr><th>नाम</th><th>फोन</th><th>देश (काम)</th><th>Ref</th><th>Follow-up सम्झना</th><th>कार्य</th></tr></thead>
+                    <thead><tr><th>Name</th><th>Phone</th><th>Country (Job)</th><th>Ref</th><th>Follow-up Reminder</th><th>Action</th></tr></thead>
                     <tbody id="lead-table-body"></tbody>
                 </table>
             </div>
@@ -228,59 +228,59 @@ body.staff-mode .admin-only{display:none !important;}
 <!-- DETAIL / EDIT MODAL -->
 <div class="modal" id="detail-modal">
     <div class="modal-content">
-        <div class="modal-header"><h2 id="modal-title">विवरण व्यवस्थापन बोर्ड</h2><span class="close-modal" onclick="closeModal()">&times;</span></div>
+        <div class="modal-header"><h2 id="modal-title">Worker Details</h2><span class="close-modal" onclick="closeModal()">&times;</span></div>
 
         <div class="pay-box">
-            <label style="font-weight:700;display:block;margin-bottom:8px;">💰 भुक्तानी अपडेट गर्नुहोस्</label>
+            <label style="font-weight:700;display:block;margin-bottom:8px;">💰 Update Payment</label>
             <div class="pay-grid">
                 <div>
-                    <div class="form-group"><label>कामदारबाट थप प्राप्त रकम</label><input type="number" id="pay-c-add" class="form-control" placeholder="0"></div>
-                    <div class="form-group"><label>माध्यम (Payment Mode)</label>
+                    <div class="form-group"><label>Received from Worker</label><input type="number" id="pay-c-add" class="form-control" placeholder="0"></div>
+                    <div class="form-group"><label>Payment Mode</label>
                         <select id="pay-c-mode" class="form-control">
-                            <option value="Cash">Cash (नगद)</option>
-                            <option value="Online">Online (eSewa/Khalti/etc)</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Online">Online (eSewa/Khalti)</option>
                             <option value="Bank">Bank Transfer</option>
-                            <option value="Other">अन्य</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>कैफियत (कसले तिरेको/कहाँबाट आयो)</label><input type="text" id="pay-c-remarks" class="form-control" placeholder="उदा: कामदार आफैले, वा दाजुले पठाएको"></div>
+                    <div class="form-group"><label>Remarks</label><input type="text" id="pay-c-remarks" class="form-control" placeholder="e.g. paid by worker / brother"></div>
                 </div>
                 <div>
-                    <div class="form-group"><label>अफिसलाई थप तिरेको रकम</label><input type="number" id="pay-o-add" class="form-control" placeholder="0"></div>
-                    <div class="form-group"><label>माध्यम (Payment Mode)</label>
+                    <div class="form-group"><label>Paid to Office</label><input type="number" id="pay-o-add" class="form-control" placeholder="0"></div>
+                    <div class="form-group"><label>Payment Mode</label>
                         <select id="pay-o-mode" class="form-control">
-                            <option value="Cash">Cash (नगद)</option>
-                            <option value="Online">Online (eSewa/Khalti/etc)</option>
+                            <option value="Cash">Cash</option>
+                            <option value="Online">Online (eSewa/Khalti)</option>
                             <option value="Bank">Bank Transfer</option>
-                            <option value="Other">अन्य</option>
+                            <option value="Other">Other</option>
                         </select>
                     </div>
-                    <div class="form-group"><label>कैफियत (कसले तिरेको/कहाँबाट आयो)</label><input type="text" id="pay-o-remarks" class="form-control" placeholder="उदा: मैले नगदै बुझाएँ"></div>
+                    <div class="form-group"><label>Remarks</label><input type="text" id="pay-o-remarks" class="form-control" placeholder="e.g. paid in cash"></div>
                 </div>
             </div>
-            <button class="btn" style="background:var(--success);" onclick="applyPayment()">भुक्तानी दर्ता गर्नुहोस्</button>
+            <button class="btn" style="background:var(--success);" onclick="applyPayment()">Record Paymentहोस्</button>
         </div>
 
         <div class="edit-form-container" id="edit-form-box">
-            <h3 style="color:var(--success);margin-bottom:12px;">डाटा संशोधन फारम</h3>
+            <h3 style="color:var(--success);margin-bottom:12px;">Edit Details</h3>
             <div class="edit-form-grid">
-                <div class="form-group"><label>नाम</label><input type="text" id="edit-name" class="form-control"></div>
-                <div class="form-group"><label>पासपोर्ट</label><input type="text" id="edit-passport" class="form-control"></div>
+                <div class="form-group"><label>Name</label><input type="text" id="edit-name" class="form-control"></div>
+                <div class="form-group"><label>Passport</label><input type="text" id="edit-passport" class="form-control"></div>
                 <div class="form-group"><label>Referred By</label><input type="text" id="edit-referred-by" class="form-control"></div>
-                <div class="form-group"><label>जाने देश</label><input type="text" id="edit-country" class="form-control"></div>
+                <div class="form-group"><label>Country</label><input type="text" id="edit-country" class="form-control"></div>
                 <div class="form-group"><label>Job Title</label><input type="text" id="edit-job" class="form-control"></div>
-                <div class="form-group"><label>मेनपावर अफिस</label><input type="text" id="edit-office" class="form-control"></div>
-                <div class="form-group"><label>तलब (Salary)</label><input type="text" id="edit-salary" class="form-control"></div>
-                <div class="form-group"><label>ड्युटी समय (Duty Hours)</label><input type="text" id="edit-duty-hours" class="form-control"></div>
-                <div class="form-group"><label>कामदार रेट</label><input type="number" id="edit-c-rate" class="form-control"></div>
-                <div class="form-group"><label>अफिस रेट</label><input type="number" id="edit-o-rate" class="form-control"></div>
-                <div class="form-group"><label>फोन</label><input type="text" id="edit-phone" class="form-control"></div>
-                <div class="form-group"><label>उडान मिति</label><input type="date" id="edit-flight-date" class="form-control"></div>
-                <div class="form-group"><label>कैफियत (Remarks)</label><input type="text" id="edit-remarks" class="form-control"></div>
+                <div class="form-group"><label>Manpower Office</label><input type="text" id="edit-office" class="form-control"></div>
+                <div class="form-group"><label>Salary</label><input type="text" id="edit-salary" class="form-control"></div>
+                <div class="form-group"><label>Duty Hours</label><input type="text" id="edit-duty-hours" class="form-control"></div>
+                <div class="form-group"><label>Worker Rate</label><input type="number" id="edit-c-rate" class="form-control"></div>
+                <div class="form-group"><label>Office Rate</label><input type="number" id="edit-o-rate" class="form-control"></div>
+                <div class="form-group"><label>Phone</label><input type="text" id="edit-phone" class="form-control"></div>
+                <div class="form-group"><label>Flight Date</label><input type="date" id="edit-flight-date" class="form-control"></div>
+                <div class="form-group"><label>Remarks</label><input type="text" id="edit-remarks" class="form-control"></div>
             </div>
             <div style="display:flex;gap:10px;">
-                <button class="btn" style="background-color:var(--success);" onclick="saveEditedData()">परिवर्तन सुरक्षित गर्नुहोस्</button>
-                <button class="btn btn-secondary" onclick="toggleEditMode(false)">रद्द गर्नुहोस्</button>
+                <button class="btn" style="background-color:var(--success);" onclick="saveEditedData()">Save Changes</button>
+                <button class="btn btn-secondary" onclick="toggleEditMode(false)">Cancel</button>
             </div>
         </div>
 
@@ -289,7 +289,7 @@ body.staff-mode .admin-only{display:none !important;}
                 <label style="font-weight:700;display:block;margin-bottom:5px;color:var(--primary-dark);">⚙️ कार्यप्रगति अवस्था अपडेट गर्नुहोस्:</label>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
                     <select id="update-stage-select" class="form-control" style="font-weight:600;flex:1;min-width:200px;">
-                        <option value="Lead">🔆 LEAD (कुरा चल्दैछ)</option>
+                        <option value="Lead">🔆 LEAD</option>
                         <option value="New Entry">NEW ENTRY</option>
                         <option value="Medical Fit">MEDICAL FIT</option>
                         <option value="Medical Unfit">MEDICAL UNFIT</option>
@@ -308,56 +308,56 @@ body.staff-mode .admin-only{display:none !important;}
                         <option value="Visa Process">VISA PROCESS</option>
                         <option value="Visa Received">VISA RECEIVED</option>
                         <option value="Ticket Process">TICKET PROCESS</option>
-                        <option value="Ticket Received">TICKET RECEIVED (उडान मिति)</option>
+                        <option value="Ticket Received">TICKET RECEIVED</option>
                         <option value="Departed">DEPARTED</option>
                         <option value="Hold">HOLD</option>
                         <option value="Cancelled">CANCELLED</option>
                         <option value="Withdrawn">WITHDRAWN BY CANDIDATE</option>
                     </select>
-                    <button class="btn" style="width:auto;" onclick="updateStage()">अपडेट</button>
+                    <button class="btn" style="width:auto;" onclick="updateStage()">Update</button>
                 </div>
             </div>
             <div id="modal-basic-info" style="margin-bottom:15px;font-size:14px;"></div>
             <div id="modal-contact-actions" style="margin-bottom:18px;"></div>
 
             <div style="background:#fefce8;border:1px solid var(--warning);padding:15px;border-radius:8px;margin-bottom:20px;">
-                <label style="font-weight:700;display:block;margin-bottom:10px;">📄 कागजात Checklist <span id="docs-count" style="font-weight:400;color:var(--text-muted);"></span></label>
+                <label style="font-weight:700;display:block;margin-bottom:10px;">📄 Document Checklist <span id="docs-count" style="font-weight:400;color:var(--text-muted);"></span></label>
                 <div id="docs-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;margin-bottom:14px;"></div>
                 <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:12px;padding-top:10px;border-top:1px dashed var(--warning);">
-                    <div><label style="font-weight:700;font-size:13px;">🩺 मेडिकल (Online) भयो?</label>
+                    <div><label style="font-weight:700;font-size:13px;">🩺 Medical (Online)?</label>
                         <select id="medical-done" class="form-control" style="margin-top:4px;">
-                            <option value="">— छान्नुहोस् —</option><option value="Yes">Yes (भयो)</option><option value="No">No (भएन)</option>
+                            <option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option>
                         </select>
                     </div>
-                    <div><label style="font-weight:700;font-size:13px;">📚 Orientation (Online) भयो?</label>
+                    <div><label style="font-weight:700;font-size:13px;">📚 Orientation (Online)?</label>
                         <select id="orientation-done" class="form-control" style="margin-top:4px;">
-                            <option value="">— छान्नुहोस् —</option><option value="Yes">Yes (भयो)</option><option value="No">No (भएन)</option>
+                            <option value="">— Select —</option><option value="Yes">Yes</option><option value="No">No</option>
                         </select>
                     </div>
                 </div>
-                <button class="btn" style="background:var(--warning);width:auto;padding:8px 20px;" onclick="saveChecklist()">💾 Checklist सुरक्षित गर्नुहोस्</button>
+                <button class="btn" style="background:var(--warning);width:auto;padding:8px 20px;" onclick="saveChecklist()">💾 Save Checklist</button>
             </div>
 
             <div style="background:#f0f9ff;border:1px solid var(--info);padding:15px;border-radius:8px;margin-bottom:20px;">
-                <label style="font-weight:700;display:block;margin-bottom:8px;">📞 Follow-up दर्ता (के भयो — कुरा/फोनको नतिजा)</label>
-                <textarea id="followup-note" class="form-control" rows="2" placeholder="उदा: फोन गरेँ, मेडिकल गर्न आउँछु भने; वा कागजात ल्याउन बाँकी छ"></textarea>
+                <label style="font-weight:700;display:block;margin-bottom:8px;">📞 Follow-up Log (what happened)</label>
+                <textarea id="followup-note" class="form-control" rows="2" placeholder="e.g. called, coming for medical; or documents pending"></textarea>
                 <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:10px;align-items:flex-end;">
-                    <div><label style="font-weight:700;font-size:13px;">⏰ पुनः Follow-up मिति (Reminder)</label>
+                    <div><label style="font-weight:700;font-size:13px;">⏰ Next Follow-up Date (Reminder)</label>
                         <input type="date" id="reminder-date" class="form-control" style="margin-top:4px;"></div>
-                    <div style="flex:1;min-width:160px;"><label style="font-weight:700;font-size:13px;">Reminder कैफियत</label>
-                        <input type="text" id="reminder-note" class="form-control" style="margin-top:4px;" placeholder="उदा: मेडिकल रिपोर्ट सोध्ने"></div>
+                    <div style="flex:1;min-width:160px;"><label style="font-weight:700;font-size:13px;">Reminder Note</label>
+                        <input type="text" id="reminder-note" class="form-control" style="margin-top:4px;" placeholder="e.g. ask about medical report"></div>
                 </div>
-                <button class="btn" style="background:var(--info);width:auto;padding:8px 20px;margin-top:10px;" onclick="saveFollowup()">💾 सुरक्षित गर्नुहोस्</button>
+                <button class="btn" style="background:var(--info);width:auto;padding:8px 20px;margin-top:10px;" onclick="saveFollowup()">💾 Save</button>
                 <div style="margin-top:12px;"><b style="font-size:13px;">📋 Follow-up History:</b>
                     <div class="history-box" id="followup-history" style="max-height:140px;margin-top:6px;"></div>
                 </div>
             </div>
 
             <div class="admin-only" style="display:flex;gap:10px;margin-bottom:20px;">
-                <button class="btn" onclick="toggleEditMode(true)">✏️ विवरण संशोधन गर्नुहोस्</button>
-                <button class="btn btn-danger" onclick="deleteCandidate()">🗑️ मेटाउनुहोस्</button>
+                <button class="btn" onclick="toggleEditMode(true)">✏️ Edit Details</button>
+                <button class="btn btn-danger" onclick="deleteCandidate()">🗑️ Delete</button>
             </div>
-            <div class="card-title" style="font-size:15px;">💵 भुक्तानी विवरण (Payment History)</div>
+            <div class="card-title" style="font-size:15px;">💵 Payment History</div>
             <div class="history-box" id="modal-payments" style="margin-bottom:20px;"></div>
             <div class="card-title" style="font-size:15px;">📜 History / Audit Log</div>
             <div class="history-box" id="modal-history"></div>
@@ -371,7 +371,7 @@ body.staff-mode .admin-only{display:none !important;}
 //    हिसाब-किताब सिस्टमको Apps Script Web App URL राख्नुहोस्।
 //    (अरू सिस्टमको URL होइन — यो Master Records कै हुनुपर्छ!)
 // ═══════════════════════════════════════════════════════════════
-const FIXED_API_URL = 'https://script.google.com/macros/s/AKfycbzWgy17PMVxrQIgzPvCh2-_IfVNv-BzSlhjckVS7NMLAiruw7gkXep4HfkM3eTtBRt2EA/exec';
+const FIXED_API_URL = '';
 
 // ================= CONFIG =================
 const LS_URL = 'wms_api_url';
@@ -402,7 +402,7 @@ function applyRoleUI(){
   document.getElementById('who-is-in').textContent = session ? session.u : '';
   const sf = document.getElementById('status-filter');
   if(sf && !sf.options.length){
-    sf.innerHTML = '<option value="">— सबै Status —</option>' + STAGE_ORDER.map(s=>`<option value="${s}">${stageBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('');
+    sf.innerHTML = '<option value="">— All Status —</option>' + STAGE_ORDER.map(s=>`<option value="${s}">${stageBadge(s).replace(/<[^>]+>/g,'')}</option>`).join('');
   }
 }
 
@@ -417,7 +417,7 @@ async function api(action, extra, credsOverride, blocking){
     const res = await fetch(API_URL, { method:'POST', body: JSON.stringify(body) });
     const data = await res.json();
     if(!data.ok && data.error === 'AUTH' && action !== 'login'){
-      alert('सत्र समाप्त भयो वा Password बदलिएको छ। कृपया फेरि Login गर्नुहोस्।');
+      alert('Session expired or password changed. Please login again.');
       logout();
     }
     return data;
@@ -431,13 +431,13 @@ async function api(action, extra, credsOverride, blocking){
 // Background sync असफल भए: प्रयोगकर्तालाई सूचित गरेर server बाट सही डाटा फिर्ता तान्ने
 function syncFailed(r, msg){
   if(r.error === 'NETWORK'){
-    alert('⚠️ ' + (msg||'परिवर्तन') + ' server मा पुगेन! Internet जाँच गरेर फेरि प्रयास गर्नुहोस्।\nस्क्रिनको डाटा server अनुसार मिलाइँदैछ...');
+    alert('⚠️ ' + (msg||'Change') + ' did not reach the server! Check internet and retry.\nRestoring screen data from server...');
   } else if(r.error === 'DUPLICATE_PASSPORT'){
-    alert('⚠️ यो पासपोर्ट नम्बर पहिल्यै दर्ता छ! (अर्को स्टाफले भर्खरै हालेको हुनसक्छ)');
+    alert('⚠️ This passport is already registered! (another staff may have just added it)');
   } else if(r.error === 'FORBIDDEN'){
-    alert('माफ गर्नुहोस्, यो अधिकार Admin लाई मात्र छ।');
+    alert('Sorry, this is Admin-only.');
   } else if(r.error && r.error !== 'AUTH'){
-    alert('⚠️ Server ले अस्वीकार गर्यो: ' + r.error);
+    alert('⚠️ Server rejected: ' + r.error);
   }
   refreshData(false);
 }
@@ -456,7 +456,7 @@ function mergeCandidate(c){
 function saveApiUrl(){
   const url = document.getElementById('setup-url').value.trim();
   if(!url.startsWith('https://script.google.com/')){
-    document.getElementById('setup-error').textContent = 'URL "https://script.google.com/..." बाट सुरु हुनुपर्छ।';
+    document.getElementById('setup-error').textContent = 'URL must start with "https://script.google.com/..."ुनुपर्छ।';
     return;
   }
   localStorage.setItem(LS_URL, url);
@@ -464,14 +464,14 @@ function saveApiUrl(){
   showScreen('login');
 }
 function changeApiUrl(){
-  if(FIXED_API_URL){ alert('Server URL यो सिस्टमभित्रै तोकिएको छ — बदल्न Admin लाई सम्पर्क गर्नुहोस्।'); return; }
-  const url = prompt('नयाँ Server (Web App) URL लेख्नुहोस्:', API_URL);
+  if(FIXED_API_URL){ alert('Server URL is fixed in this system — contact Admin to change.'); return; }
+  const url = prompt('Enter new Server (Web App) URL:', API_URL);
   if(url && url.trim().startsWith('https://script.google.com/')){
     localStorage.setItem(LS_URL, url.trim());
     API_URL = url.trim();
-    alert('URL बदलियो।');
+    alert('URL changed.');
   } else if(url){
-    alert('अमान्य URL।');
+    alert('Invalid URL.');
   }
 }
 function showScreen(name){
@@ -484,7 +484,7 @@ function showScreen(name){
 async function doLogin(){
   const u = document.getElementById('login-user').value.trim();
   const p = document.getElementById('login-pass').value;
-  if(!u || !p){ document.getElementById('login-error').textContent = 'Username र Password भर्नुहोस्।'; return; }
+  if(!u || !p){ document.getElementById('login-error').textContent = 'Enter Username and Password.'; return; }
   const r = await api('login', {}, {u, p}, true);
   if(r.ok){
     session = { u, p, role: r.role };
@@ -495,9 +495,9 @@ async function doLogin(){
     applyRoleUI();
     await refreshData(true);
   } else if(r.error === 'AUTH'){
-    document.getElementById('login-error').textContent = 'Username वा Password मिलेन।';
+    document.getElementById('login-error').textContent = 'Wrong Username or Password.';
   } else if(r.error === 'NETWORK'){
-    document.getElementById('login-error').textContent = 'सर्भरसँग जडान भएन। Internet र URL जाँच गर्नुहोस्।';
+    document.getElementById('login-error').textContent = 'Cannot connect to server. Check internet and URL.स्।';
   }
 }
 function logout(){
@@ -507,42 +507,42 @@ function logout(){
 }
 
 async function openChangePass(){
-  const np = prompt('नयाँ Password लेख्नुहोस्:');
+  const np = prompt('Enter new Password:');
   if(!np){ return; }
   const r = await api('changepass', { newPassword: np }, null, true);
   if(r.ok){
     session.p = np;
     sessionStorage.setItem(SS_KEY, JSON.stringify(session));
-    alert('तपाईंको Password सफलतापूर्वक बदलियो।');
+    alert('Password changed successfully.');
   } else if(r.error==='NETWORK'){
-    alert('सर्भरसँग जडान भएन। फेरि प्रयास गर्नुहोस्।');
+    alert('Cannot connect to server. Please retry.');
   }
 }
 
 // ================= USER MANAGEMENT =================
 async function manageUsers(){
-  if(!isAdmin()){ alert('यो सुविधा Admin लाई मात्र उपलब्ध छ।'); return; }
+  if(!isAdmin()){ alert('This feature is Admin-only.'); return; }
   const lr = await api('listusers', {}, null, true);
   if(!lr.ok) return;
   const list = lr.users.map(u=>`• ${u.username} (${u.role})`).join('\n');
-  const choice = prompt('हालका प्रयोगकर्ताहरू:\n' + list + '\n\nके गर्ने?\n"add" लेखेर नयाँ Staff थप्नुहोस्\n"remove" लेखेर हटाउनुहोस्\nरद्द गर्न Cancel थिच्नुहोस्।');
+  const choice = prompt('Current users:\n' + list + '\n\nWhat to do?\nType "add" to add new Staffुहोस्\n"remove" लेखेर हटाउनुहोस्\nरद्द गर्न Cancel थिच्नुहोस्।');
   if(!choice) return;
   if(choice.trim().toLowerCase()==='add'){
-    const nu = prompt('नयाँ Staff Username:');
+    const nu = prompt('New Staff Username:');
     if(!nu) return;
-    const np = prompt('नयाँ Staff Password:');
+    const np = prompt('New Staff Password:');
     if(!np) return;
     const r = await api('adduser', { newUsername: nu.trim(), newPassword: np, newRole: 'staff' }, null, true);
-    if(r.ok) alert(`Staff "${nu}" थपियो। यिनले Edit/Delete/Backup गर्न मिल्दैन, तर हेर्न, थप्न, अवस्था/भुक्तानी अपडेट गर्न मिल्छ।`);
-    else if(r.error==='DUPLICATE_USER') alert('यो Username पहिल्यै छ।');
+    if(r.ok) alert(`Staff "${nu}" added. They cannot Edit/Delete/Backup, but can view, add, and update status/pुक्तानी अपडेट गर्न मिल्छ।`);
+    else if(r.error==='DUPLICATE_USER') alert('This Username already exists.');
   } else if(choice.trim().toLowerCase()==='remove'){
-    const ru = prompt('हटाउने Username लेख्नुहोस्:');
+    const ru = prompt('Enter Username to remove:');
     if(!ru) return;
     const r = await api('removeuser', { targetUsername: ru.trim() }, null, true);
-    if(r.ok) alert(`"${ru}" हटाइयो।`);
-    else if(r.error==='CANT_REMOVE_SELF') alert('आफैलाई हटाउन मिल्दैन।');
-    else if(r.error==='LAST_ADMIN') alert('कम्तिमा एउटा Admin बाँकी रहनुपर्छ।');
-    else if(r.error==='NOT_FOUND') alert('यो Username फेला परेन।');
+    if(r.ok) alert(`"${ru}" removed.`);
+    else if(r.error==='CANT_REMOVE_SELF') alert('Cannot remove yourself.');
+    else if(r.error==='LAST_ADMIN') alert('At least one Admin must remain.');
+    else if(r.error==='NOT_FOUND') alert('Username not found.');
   }
 }
 
@@ -565,7 +565,7 @@ document.getElementById('candidate-form').addEventListener('submit', function(e)
   e.preventDefault();
   const passport = document.getElementById('passport').value.trim();
   if(candidates.some(c => S(c.passport).toLowerCase() === passport.toLowerCase())){
-    alert('⚠️ यो पासपोर्ट नम्बर पहिल्यै दर्ता भइसकेको छ! दोहोरो इन्ट्री गर्न मिल्दैन।');
+    alert('⚠️ This passport is already registered! No duplicate entry allowed.');
     return;
   }
   const c = {
@@ -594,7 +594,7 @@ document.getElementById('candidate-form').addEventListener('submit', function(e)
     else {
       candidates = candidates.filter(x=>x.id!==c.id);
       renderTable();
-      syncFailed(r, 'नयाँ कामदारको दर्ता');
+      syncFailed(r, 'New worker entry');
     }
   });
 });
@@ -670,7 +670,7 @@ function renderTable(){
     document.getElementById('reminder-list').innerHTML = dueReminders.map(c=>{
       const overdue = c.nextReminder < today;
       return `<div style="padding:6px 0;border-bottom:1px dashed var(--border-color);">
-        <b>${c.name}</b> (${c.phone||'फोन छैन'}) — <span style="color:${overdue?'var(--danger)':'var(--warning)'};font-weight:700">${c.nextReminder}${overdue?' (नाघेको!)':' (आज)'}</span>
+        <b>${c.name}</b> (${c.phone||'no phone'}) — <span style="color:${overdue?'var(--danger)':'var(--warning)'};font-weight:700">${c.nextReminder}${overdue?' (overdueको!)':' (आज)'}</span>
         ${c.reminderNote ? ' — '+c.reminderNote : ''}
         <button class="btn btn-sm" style="width:auto;padding:3px 10px;margin-left:8px;" onclick="openModal('${c.id}')">खोल्नुहोस्</button>
         ${c.phone ? `<button class="btn btn-sm" style="background:#25D366;width:auto;padding:3px 10px;margin-left:4px;" onclick="waSend('${c.id}')">📱</button>` : ''}</div>`;
@@ -689,9 +689,9 @@ function renderTable(){
       <td>${stageBadge(c.stage)}</td>
       <td class="${cDue>0?'due-pos':'due-zero'}">${fmt(cDue)}</td>
       <td class="${oDue>0?'due-pos':'due-zero'}">${fmt(oDue)}</td>
-      <td><button class="btn btn-sm" onclick="openModal('${c.id}')">हेर्नुहोस्</button></td>
+      <td><button class="btn btn-sm" onclick="openModal('${c.id}')">View</button></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">कुनै रेकर्ड फेला परेन</td></tr>`;
+  }).join('') || `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No records fेला परेन</td></tr>`;
 
   const groups = {processing:[], visa:[], flown:[], cancel:[]};
   filtered.forEach(c=>{
@@ -709,28 +709,28 @@ function renderTable(){
   document.getElementById('table-processing').innerHTML = groups.processing.map(c=>`
     <tr><td>${c.name}<br><small>${c.passport}</small></td><td>${c.referredBy||'-'}</td><td>${c.country}<br><small>${c.job}</small></td>
     <td>${stageBadge(c.stage)}</td><td class="${(c.cRate-c.cPaid)>0?'due-pos':'due-zero'}">${fmt(c.cRate-c.cPaid)}</td>
-    <td><button class="btn btn-sm" onclick="openModal('${c.id}')">अपडेट</button></td></tr>`).join('') ||
-    `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">कुनै रेकर्ड छैन</td></tr>`;
+    <td><button class="btn btn-sm" onclick="openModal('${c.id}')">Update</button></td></tr>`).join('') ||
+    `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No records</td></tr>`;
 
   document.getElementById('table-visa').innerHTML = groups.visa.map(c=>`
     <tr><td>${c.name}<br><small>${c.passport}</small></td><td>${c.referredBy||'-'}</td><td>${c.country}<br><small>${c.job}</small></td>
     <td>${stageBadge(c.stage)}</td>
-    <td>${c.flightDate ? '<b style="color:var(--info)">'+c.flightDate+'</b>' : '<span style="color:var(--warning)">तोकिएको छैन</span>'}</td>
+    <td>${c.flightDate ? '<b style="color:var(--info)">'+c.flightDate+'</b>' : '<span style="color:var(--warning)">Not set</span>'}</td>
     <td class="${(c.cRate-c.cPaid)>0?'due-pos':'due-zero'}">${fmt(c.cRate-c.cPaid)}</td>
-    <td><button class="btn btn-sm" onclick="openModal('${c.id}')">अपडेट</button></td></tr>`).join('') ||
-    `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">कुनै रेकर्ड छैन</td></tr>`;
+    <td><button class="btn btn-sm" onclick="openModal('${c.id}')">Update</button></td></tr>`).join('') ||
+    `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No records</td></tr>`;
 
   document.getElementById('table-flown').innerHTML = groups.flown.map(c=>`
     <tr><td>${c.name}<br><small>${c.passport}</small></td><td>${c.referredBy||'-'}</td><td>${c.country}<br><small>${c.job}</small></td>
     <td>${c.flightDate||'-'}</td><td class="${(c.cRate-c.cPaid)>0?'due-pos':'due-zero'}">${fmt(c.cRate-c.cPaid)}</td>
-    <td><button class="btn btn-sm" onclick="openModal('${c.id}')">विवरण</button></td></tr>`).join('') ||
-    `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">कुनै रेकर्ड छैन</td></tr>`;
+    <td><button class="btn btn-sm" onclick="openModal('${c.id}')">Detail</button></td></tr>`).join('') ||
+    `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No records</td></tr>`;
 
   document.getElementById('table-cancel').innerHTML = groups.cancel.map(c=>`
     <tr><td>${c.name}<br><small>${c.passport}</small></td><td>${c.referredBy||'-'}</td><td>${c.country}<br><small>${c.job}</small></td>
     <td>${c.remarks||'-'}</td><td class="${(c.cRate-c.cPaid)>0?'due-pos':'due-zero'}">${fmt(c.cRate-c.cPaid)}</td>
-    <td><button class="btn btn-sm" onclick="openModal('${c.id}')">विवरण</button></td></tr>`).join('') ||
-    `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">कुनै रेकर्ड छैन</td></tr>`;
+    <td><button class="btn btn-sm" onclick="openModal('${c.id}')">Detail</button></td></tr>`).join('') ||
+    `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No records</td></tr>`;
 
   renderLeads();
 }
@@ -743,7 +743,7 @@ function renderLeads(){
   const today = new Date().toISOString().slice(0,10);
   document.getElementById('lead-table-body').innerHTML = leads.map(c=>{
     const rem = c.nextReminder ? (c.nextReminder <= today
-      ? `<span style="color:var(--danger);font-weight:700">${c.nextReminder} ${c.nextReminder<today?'(नाघेको!)':'(आज)'}</span>`
+      ? `<span style="color:var(--danger);font-weight:700">${c.nextReminder} ${c.nextReminder<today?'(overdueको!)':'(आज)'}</span>`
       : c.nextReminder) : '<span style="color:var(--text-muted)">—</span>';
     return `<tr>
       <td><b>${c.name}</b></td>
@@ -752,17 +752,17 @@ function renderLeads(){
       <td>${c.referredBy||'-'}</td>
       <td>${rem}${c.reminderNote?'<br><small>'+c.reminderNote+'</small>':''}</td>
       <td style="white-space:nowrap;">
-        <button class="btn btn-sm" onclick="openModal('${c.id}')">हेर्नुहोस्</button>
+        <button class="btn btn-sm" onclick="openModal('${c.id}')">View</button>
         ${c.phone?`<button class="btn btn-sm" style="background:#25D366;padding:5px 8px;" onclick="waSend('${c.id}')">📱</button>`:''}
-        <button class="btn btn-sm" style="background:var(--success);padding:5px 8px;" onclick="promoteLead('${c.id}')" title="प्रक्रियामा सार्ने">➡️</button>
+        <button class="btn btn-sm" style="background:var(--success);padding:5px 8px;" onclick="promoteLead('${c.id}')" title="Move to Process">➡️</button>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">कुनै Lead छैन</td></tr>`;
+  }).join('') || `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No leads</td></tr>`;
 }
 
 async function addLead(){
   const name = document.getElementById('lead-name').value.trim();
-  if(!name){ alert('Lead को नाम भर्नुहोस्।'); return; }
+  if(!name){ alert('Enter Lead name.'); return; }
   const c = {
     name,
     passport: 'LEAD-' + Date.now(),  // Lead मा पासपोर्ट नहुन सक्छ — अस्थायी
@@ -777,40 +777,40 @@ async function addLead(){
     candidates.push(r.candidate);
     ['lead-name','lead-phone','lead-country','lead-job','lead-source'].forEach(id=>document.getElementById(id).value='');
     renderLeads();
-    alert('✅ Lead थपियो।');
+    alert('✅ Lead added.');
   } else {
-    alert('थप्न सकिएन: ' + (r.error||''));
+    alert('Could not add: ' + (r.error||''));
   }
 }
 
 async function promoteLead(id){
   const c = candidates.find(x=>x.id===id);
   if(!c) return;
-  if(!confirm(c.name + ' लाई प्रक्रियामा (NEW ENTRY) सार्ने? यसपछि मुख्य सूचीमा देखिन्छ।\n\n(पासपोर्ट, रेट जस्ता विवरण "हेर्नुहोस्" खोलेर भर्नुहोला।)')) return;
+  if(!confirm('Move ' + c.name + ' to process (NEW ENTRY)? They will appear in the main list.\n\n(Passport, रेट जस्ता विवरण "हेर्नुहोस्" खोलेर भर्नुहोला।)')) return;
   const r = await api('stage', { id: c.id, stage: 'New Entry' }, null, true);
   if(r.ok && r.candidate){
     mergeCandidate(r.candidate);
-    alert('✅ ' + c.name + ' अब मुख्य सूचीमा (NEW ENTRY) छ। पासपोर्ट/रेट भर्न "दर्ता फारम" ट्याबको सूचीबाट खोल्नुहोस्।');
-  } else syncFailed(r, 'Lead सार्ने');
+    alert('✅ ' + c.name + ' is now in the main list (NEW ENTRY). Open from "Records" tab to fill passport/rate.ट खोल्नुहोस्।');
+  } else syncFailed(r, 'Move Lead');
 }
 function fillModal(c){
-  document.getElementById('modal-title').textContent = c.name + ' — विवरण';
+  document.getElementById('modal-title').textContent = c.name + ' — Details';
   document.getElementById('update-stage-select').value = c.stage;
   document.getElementById('modal-basic-info').innerHTML = `
-    <b>पासपोर्ट:</b> ${c.passport} &nbsp; | &nbsp; <b>रेफरल:</b> ${c.referredBy||'-'} &nbsp; | &nbsp; <b>फोन:</b> ${c.phone||'-'}<br>
-    <b>देश/काम:</b> ${c.country} / ${c.job} &nbsp; | &nbsp; <b>अफिस:</b> ${c.office}<br>
-    <b>💵 तलब:</b> ${c.salary || '-'} &nbsp; | &nbsp; <b>🕐 ड्युटी समय:</b> ${c.dutyHours || '-'}<br>
-    <b>कामदार रेट:</b> ${fmt(c.cRate)} (तिरेको: ${fmt(c.cPaid)}, बाँकी: ${fmt(c.cRate-c.cPaid)})<br>
-    <b>अफिस रेट:</b> ${fmt(c.oRate)} (तिरेको: ${fmt(c.oPaid)}, बाँकी: ${fmt(c.oRate-c.oPaid)})<br>
-    <b>✈️ उडान मिति:</b> ${c.flightDate ? '<span style="color:var(--info);font-weight:700">'+c.flightDate+'</span>' : '<span style="color:var(--warning)">तोकिएको छैन</span>'}<br>
-    <b>🩺 मेडिकल:</b> ${medBadge(c.medicalDone)} &nbsp; | &nbsp; <b>📚 Orientation:</b> ${medBadge(c.orientationDone)}`;
+    <b>Passport:</b> ${c.passport} &nbsp; | &nbsp; <b>Referral:</b> ${c.referredBy||'-'} &nbsp; | &nbsp; <b>Phone:</b> ${c.phone||'-'}<br>
+    <b>Country/Job:</b> ${c.country} / ${c.job} &nbsp; | &nbsp; <b>Office:</b> ${c.office}<br>
+    <b>💵 Salary:</b> ${c.salary || '-'} &nbsp; | &nbsp; <b>🕐 Duty Hours:</b> ${c.dutyHours || '-'}<br>
+    <b>Worker Rate:</b> ${fmt(c.cRate)} (Paid: ${fmt(c.cPaid)}, Due: ${fmt(c.cRate-c.cPaid)})<br>
+    <b>Office Rate:</b> ${fmt(c.oRate)} (Paid: ${fmt(c.oPaid)}, Due: ${fmt(c.oRate-c.oPaid)})<br>
+    <b>✈️ Flight Date:</b> ${c.flightDate ? '<span style="color:var(--info);font-weight:700">'+c.flightDate+'</span>' : '<span style="color:var(--warning)">Not set</span>'}<br>
+    <b>🩺 Medical:</b> ${medBadge(c.medicalDone)} &nbsp; | &nbsp; <b>📚 Orientation:</b> ${medBadge(c.orientationDone)}`;
   // Checklist render
   const docs = c.docs || {};
   document.getElementById('docs-grid').innerHTML = DOC_ITEMS.map(d=>`
     <label style="display:flex;align-items:center;gap:8px;font-size:14px;cursor:pointer;padding:5px 8px;border-radius:6px;">
       <input type="checkbox" id="doc-${d.key}" ${docs[d.key]?'checked':''} style="width:17px;height:17px;"> ${d.label}</label>`).join('');
   const got = DOC_ITEMS.filter(d=>docs[d.key]).length;
-  document.getElementById('docs-count').textContent = `(${got}/${DOC_ITEMS.length} प्राप्त)`;
+  document.getElementById('docs-count').textContent = `(${got}/${DOC_ITEMS.length} received)`;
   document.getElementById('medical-done').value = c.medicalDone || '';
   document.getElementById('orientation-done').value = c.orientationDone || '';
   // Contact quick actions
@@ -819,9 +819,9 @@ function fillModal(c){
   if(phoneStr){
     ca.innerHTML = `
       <button class="btn btn-sm" style="background:#25D366;width:auto;padding:8px 16px;margin-right:8px;" onclick="waSend('${c.id}')">📱 WhatsApp</button>
-      <a href="tel:${waNumber(phoneStr)}" class="btn btn-sm" style="background:var(--info);width:auto;padding:8px 16px;text-decoration:none;">📞 Call गर्नुहोस्</a>`;
+      <a href="tel:${waNumber(phoneStr)}" class="btn btn-sm" style="background:var(--info);width:auto;padding:8px 16px;text-decoration:none;">📞 Call</a>`;
   } else {
-    ca.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">📱 फोन नम्बर नभएकाले WhatsApp/Call उपलब्ध छैन</span>';
+    ca.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">📱 No phone number — WhatsApp/Call unavailable</span>';
   }
   // Follow-up fields
   document.getElementById('followup-note').value = '';
@@ -830,7 +830,7 @@ function fillModal(c){
   const fups = (c.followups||[]).slice().reverse();
   document.getElementById('followup-history').innerHTML = fups.map(f=>
     `<div class="history-item"><b>${(f.time||'').slice(0,16)}</b> (${f.user}) — ${f.note}</div>`
-  ).join('') || '<div style="color:var(--text-muted)">कुनै follow-up दर्ता छैन</div>';
+  ).join('') || '<div style="color:var(--text-muted)">No follow-up logged</div>';
   renderPayments(c.id);
 }
 
@@ -858,29 +858,29 @@ const WA_TEMPLATES = [
 ];
 function waSend(id){
   const c = candidates.find(x=>x.id===id);
-  if(!c || !c.phone){ alert('फोन नम्बर छैन।'); return; }
+  if(!c || !c.phone){ alert('No phone number.'); return; }
   const num = waNumber(c.phone);
   // Template छान्ने
   let msg = '';
   const list = WA_TEMPLATES.map((t,i)=>`${i}. ${t.label}`).join('\n');
-  const pick = prompt('कुन message पठाउने? नम्बर लेख्नुहोस्:\n\n'+list, '0');
+  const pick = prompt('Which message? Enter number:\n\n'+list, '0');
   if(pick === null) return;
   const t = WA_TEMPLATES[Number(pick)] || WA_TEMPLATES[0];
   msg = t.text.replace('{name}', c.name).replace('{flight}', c.flightDate||'—');
-  if(!msg){ msg = prompt('Message लेख्नुहोस्:', '') || ''; }
+  if(!msg){ msg = prompt('Type message:', '') || ''; }
   const url = 'https://wa.me/' + num + (msg ? '?text=' + encodeURIComponent(msg) : '');
   window.open(url, '_blank');
 }
 
 const DOC_ITEMS = [
-  {key:'ppCopy', label:'पासपोर्ट प्रति'},
-  {key:'photo', label:'फोटो (PP Size)'},
-  {key:'citizenship', label:'नागरिकता'},
-  {key:'cv', label:'CV / बायोडाटा'},
-  {key:'experience', label:'अनुभव पत्र'},
+  {key:'ppCopy', label:'Passport Copy'},
+  {key:'photo', label:'Photo (PP Size)'},
+  {key:'citizenship', label:'Citizenship'},
+  {key:'cv', label:'CV / Biodata'},
+  {key:'experience', label:'Experience Letter'},
   {key:'police', label:'Police Report'},
-  {key:'medical', label:'मेडिकल रिपोर्ट'},
-  {key:'training', label:'तालिम प्रमाणपत्र'}
+  {key:'medical', label:'Medical Report'},
+  {key:'training', label:'Training Certificate'}
 ];
 function medBadge(v){
   if(v==='Yes') return '<span class="badge badge-pass">Yes ✓</span>';
@@ -897,7 +897,7 @@ async function saveChecklist(){
   c.docs = docs; c.medicalDone = medicalDone; c.orientationDone = orientationDone;
   fillModal(c);
   const r = await api('checklist', { id: c.id, docs, medicalDone, orientationDone }, null, true);
-  if(r.ok && r.candidate){ mergeCandidate(r.candidate); alert('✅ Checklist सुरक्षित भयो।'); }
+  if(r.ok && r.candidate){ mergeCandidate(r.candidate); alert('✅ Checklist saved.'); }
   else syncFailed(r, 'Checklist');
 }
 async function saveFollowup(){
@@ -906,16 +906,16 @@ async function saveFollowup(){
   const note = document.getElementById('followup-note').value.trim();
   const nextReminder = document.getElementById('reminder-date').value;
   const reminderNote = document.getElementById('reminder-note').value.trim();
-  if(!note && !nextReminder){ alert('Follow-up कुरा वा Reminder मिति — कम्तिमा एउटा भर्नुहोस्।'); return; }
+  if(!note && !nextReminder){ alert('Fill at least one — Follow-up note or Reminder date.'); return; }
   const r = await api('followup', { id: c.id, note, nextReminder, reminderNote }, null, true);
-  if(r.ok && r.candidate){ mergeCandidate(r.candidate); fillModal(r.candidate); alert('✅ सुरक्षित भयो।'); }
+  if(r.ok && r.candidate){ mergeCandidate(r.candidate); fillModal(r.candidate); alert('✅ Saved.'); }
   else syncFailed(r, 'Follow-up');
 }
 
 function openModal(id){
   editingId = id;
   const c = candidates.find(x=>x.id===id);
-  if(!c){ alert('रेकर्ड फेला परेन। Refresh गरेर फेरि प्रयास गर्नुहोस्।'); return; }
+  if(!c){ alert('Record not found. Refresh and retry.'); return; }
   // Modal पहिले खोल्ने — त्यसपछि content भर्ने (कुनै भाग fail भए पनि modal खुलोस्)
   document.getElementById('detail-modal').style.display='flex';
   try {
@@ -930,34 +930,34 @@ function openModal(id){
     loadHistory(id);
   } catch(err) {
     console.error('openModal error:', err);
-    alert('विवरण देखाउँदा समस्या: ' + err.message + '\n\nScreenshot लिएर भन्नुहोस्।');
+    alert('Error showing details: ' + err.message);
   }
 }
 function closeModal(){ document.getElementById('detail-modal').style.display='none'; editingId=null; }
 
 async function loadHistory(id){
-  document.getElementById('modal-history').innerHTML = '<div style="color:var(--text-muted)">लोड हुँदैछ...</div>';
+  document.getElementById('modal-history').innerHTML = '<div style="color:var(--text-muted)">Loadingछ...</div>';
   const r = await api('getlog', { id });
   if(editingId !== id) return;
   if(!r.ok){
-    document.getElementById('modal-history').innerHTML = '<div style="color:var(--text-muted)">इतिहास लोड हुन सकेन</div>';
+    document.getElementById('modal-history').innerHTML = '<div style="color:var(--text-muted)">Could not load historyड हुन सकेन</div>';
     return;
   }
   const log = (r.log||[]).reverse();
   document.getElementById('modal-history').innerHTML = log.map(l=>
     `<div class="history-item"><b>${l.time}</b> (${l.user}) — ${l.action}: ${l.detail}</div>`
-  ).join('') || '<div style="color:var(--text-muted)">कुनै इतिहास छैन</div>';
+  ).join('') || '<div style="color:var(--text-muted)">No history</div>';
 }
 
 function renderPayments(id){
   const c = candidates.find(x=>x.id===id);
   const payments = (c && c.payments) ? [...c.payments].reverse() : [];
   document.getElementById('modal-payments').innerHTML = payments.map(p=>{
-    const label = p.type==='candidate' ? '⬇️ कामदारबाट प्राप्त' : '⬆️ अफिसलाई तिरेको';
+    const label = p.type==='candidate' ? '⬇️ Received from worker' : '⬆️ Paid to office';
     const color = p.type==='candidate' ? 'var(--success)' : 'var(--warning)';
     return `<div class="history-item"><b>${p.time}</b> (${p.user})<br>
-      <span style="color:${color};font-weight:700">${label}: ${fmt(p.amount)}</span> — माध्यम: <b>${p.mode}</b>${p.remarks ? '<br><i>कैफियत: '+p.remarks+'</i>' : ''}</div>`;
-  }).join('') || '<div style="color:var(--text-muted)">कुनै भुक्तानी दर्ता भएको छैन</div>';
+      <span style="color:${color};font-weight:700">${label}: ${fmt(p.amount)}</span> — Mode: <b>${p.mode}</b>${p.remarks ? '<br><i>Remarks: '+p.remarks+'</i>' : ''}</div>`;
+  }).join('') || '<div style="color:var(--text-muted)">No payments recorded</div>';
 }
 
 // ================= STAGE (optimistic) =================
@@ -968,14 +968,14 @@ function updateStage(){
   let flightDate = '';
   let remarks = '';
   if((newStage==='Ticket Received' || newStage==='Departed')){
-    const fd = prompt('✈️ उडान (Departure) मिति लेख्नुहोस् (YYYY-MM-DD):', c.flightDate || '');
+    const fd = prompt('✈️ Enter Departure date (YYYY-MM-DD):', c.flightDate || '');
     if(fd) flightDate = fd;
     else if(newStage==='Ticket Received' && !c.flightDate){
-      alert('⚠️ ध्यान दिनुहोस्: Ticket Received भएपनि उडान मिति अझै राखिएको छैन। पछि अवश्य अपडेट गर्नुहोस्।');
+      alert('⚠️ Note: Ticket Received but flight date not set yet. Please update it later.।');
     }
   }
   if(CANCEL_STAGES.includes(newStage)){
-    const rs = prompt('❌ कारण / कैफियत लेख्नुहोस् (जस्तै: किन Fail/Cancel/Reject भयो):', c.remarks || '');
+    const rs = prompt('❌ Enter reason / remarks (why Fail/Cancel/Reject):', c.remarks || '');
     if(rs === null) return;
     remarks = rs.trim();
   }
@@ -988,7 +988,7 @@ function updateStage(){
   // पछाडि server sync
   api('stage', { id: c.id, stage: newStage, flightDate, remarks }).then(r=>{
     if(r.ok && r.candidate) mergeCandidate(r.candidate);
-    else syncFailed(r, 'अवस्था अपडेट');
+    else syncFailed(r, 'Status update');
   });
 }
 
@@ -998,7 +998,7 @@ function applyPayment(){
   if(!c) return;
   const cAdd = Number(document.getElementById('pay-c-add').value)||0;
   const oAdd = Number(document.getElementById('pay-o-add').value)||0;
-  if(cAdd<=0 && oAdd<=0){ alert('कुनै रकम भर्नुहोस्।'); return; }
+  if(cAdd<=0 && oAdd<=0){ alert('Enter an amount.'); return; }
   const payments = [];
   if(cAdd>0) payments.push({ type:'candidate', amount:cAdd, mode:document.getElementById('pay-c-mode').value, remarks:document.getElementById('pay-c-remarks').value.trim() });
   if(oAdd>0) payments.push({ type:'office', amount:oAdd, mode:document.getElementById('pay-o-mode').value, remarks:document.getElementById('pay-o-remarks').value.trim() });
@@ -1017,13 +1017,13 @@ function applyPayment(){
   // पछाडि server sync
   api('payment', { id: c.id, payments }).then(r=>{
     if(r.ok && r.candidate) mergeCandidate(r.candidate);
-    else syncFailed(r, 'भुक्तानी दर्ता');
+    else syncFailed(r, 'Payment record');
   });
 }
 
 // ================= EDIT =================
 function toggleEditMode(show){
-  if(show && !isAdmin()){ alert('माफ गर्नुहोस्, विवरण संशोधन गर्ने अधिकार Admin लाई मात्र छ।'); return; }
+  if(show && !isAdmin()){ alert('Sorry, editing is Admin-only.'); return; }
   document.getElementById('edit-form-box').style.display = show ? 'block' : 'none';
   document.getElementById('view-details-box').style.display = show ? 'none' : 'block';
   if(show){
@@ -1045,12 +1045,12 @@ function toggleEditMode(show){
 }
 
 function saveEditedData(){
-  if(!isAdmin()){ alert('माफ गर्नुहोस्, विवरण संशोधन गर्ने अधिकार Admin लाई मात्र छ।'); return; }
+  if(!isAdmin()){ alert('Sorry, editing is Admin-only.'); return; }
   const c = candidates.find(x=>x.id===editingId);
   if(!c) return;
   const newPassport = document.getElementById('edit-passport').value.trim();
   if(candidates.some(x=>x.id!==c.id && S(x.passport).toLowerCase()===newPassport.toLowerCase())){
-    alert('⚠️ यो पासपोर्ट नम्बर अर्को कामदारमा पहिल्यै छ।'); return;
+    alert('⚠️ This passport already belongs to another worker.'); return;
   }
   // तुरुन्तै स्क्रिनमा
   c.name = document.getElementById('edit-name').value.trim();
@@ -1076,13 +1076,13 @@ function saveEditedData(){
     flightDate:c.flightDate, remarks:c.remarks, salary:c.salary, dutyHours:c.dutyHours
   }}).then(r=>{
     if(r.ok && r.candidate) mergeCandidate(r.candidate);
-    else syncFailed(r, 'विवरण संशोधन');
+    else syncFailed(r, 'Edit details');
   });
 }
 
 function deleteCandidate(){
-  if(!isAdmin()){ alert('माफ गर्नुहोस्, मेटाउने अधिकार Admin लाई मात्र छ।'); return; }
-  if(!confirm('के तपाईं यो रेकर्ड पूरै मेटाउन चाहनुहुन्छ? यो फिर्ता आउँदैन।')) return;
+  if(!isAdmin()){ alert('Sorry, delete is Admin-only.'); return; }
+  if(!confirm('Delete this record permanently? This cannot be undone.')) return;
   const id = editingId;
   // तुरुन्तै स्क्रिनमा
   candidates = candidates.filter(x=>x.id!==id);
@@ -1090,7 +1090,7 @@ function deleteCandidate(){
   renderTable();
   // पछाडि server sync
   api('delete', { id }).then(r=>{
-    if(!r.ok) syncFailed(r, 'रेकर्ड मेटाउने');
+    if(!r.ok) syncFailed(r, 'Delete record');
   });
 }
 
@@ -1109,14 +1109,14 @@ function filterLabel(){
   const sf = document.getElementById('status-filter')?.value || '';
   let parts = [];
   if(sf) parts.push('Status: ' + stageBadge(sf).replace(/<[^>]+>/g,''));
-  if(q) parts.push('खोज: "'+q+'"');
-  return parts.length ? parts.join(' | ') : 'सबै कामदार';
+  if(q) parts.push('Search: "'+q+'"');
+  return parts.length ? parts.join(' | ') : 'All Workers';
 }
 
 // ================= PRINT (filter अनुसार) =================
 function printFiltered(){
   const rows = getFilteredList();
-  if(!rows.length){ alert('Print गर्ने कुनै रेकर्ड छैन।'); return; }
+  if(!rows.length){ alert('No records to print.'); return; }
   const showMoney = isAdmin();
   const win = window.open('', '_blank');
   const rowsHtml = rows.map((c,i)=>`<tr>
@@ -1130,9 +1130,9 @@ function printFiltered(){
     .meta{color:#555;font-size:13px;margin-bottom:12px;border-bottom:2px solid #333;padding-bottom:8px;}
     table{width:100%;border-collapse:collapse;font-size:13px;}th,td{border:1px solid #999;padding:6px 8px;text-align:left;}th{background:#eee;}</style>
     </head><body>
-    <h2>Master Records — वैदेशिक रोजगार कामदार</h2>
-    <div class="meta">${filterLabel()} &nbsp;|&nbsp; जम्मा: ${rows.length} जना &nbsp;|&nbsp; मिति: ${new Date().toLocaleString()}</div>
-    <table><thead><tr><th>#</th><th>नाम</th><th>पासपोर्ट</th><th>फोन</th><th>देश/काम</th><th>Status</th><th>उडान मिति</th>${showMoney?'<th>लिन बाँकी</th>':''}</tr></thead>
+    <h2>Master Records — Foreign Employment Workers</h2>
+    <div class="meta">${filterLabel()} &nbsp;|&nbsp; Total: ${rows.length} &nbsp;|&nbsp; Date: ${new Date().toLocaleString()}</div>
+    <table><thead><tr><th>#</th><th>Name</th><th>Passport</th><th>Phone</th><th>Country/Job</th><th>Status</th><th>Flight Date</th>${showMoney?'<th>Receivable</th>':''}</tr></thead>
     <tbody>${rowsHtml}</tbody></table>
     </body></html>`);
   win.document.close();
@@ -1142,10 +1142,10 @@ function printFiltered(){
 // ================= EXCEL DOWNLOAD (filter अनुसार, CSV) =================
 function exportExcel(){
   const rows = getFilteredList();
-  if(!rows.length){ alert('Download गर्ने कुनै रेकर्ड छैन।'); return; }
+  if(!rows.length){ alert('No records to download.'); return; }
   const showMoney = isAdmin();
-  let headers = ['नाम','पासपोर्ट','रेफरल','फोन','देश','काम','अफिस','तलब','Status','उडान मिति','मेडिकल','Orientation','कैफियत'];
-  if(showMoney) headers = headers.concat(['कामदार रेट','तिरेको','लिन बाँकी','अफिस रेट','अफिस तिरेको','अफिस बाँकी']);
+  let headers = ['Name','Passport','Referral','Phone','Country','Job','Office','Salary','Status','Flight Date','Medical','Orientation','Remarks'];
+  if(showMoney) headers = headers.concat(['Worker Rate','Paid','Receivable','Office Rate','Office Paid','अफिस बाँकी']);
   const esc = v => '"' + String(v==null?'':v).replace(/"/g,'""') + '"';
   const lines = [headers.map(esc).join(',')];
   rows.forEach(c=>{
@@ -1164,7 +1164,7 @@ function exportExcel(){
 }
 
 function exportBackup(){
-  if(!isAdmin()){ alert('Backup लिने अधिकार Admin लाई मात्र छ।'); return; }
+  if(!isAdmin()){ alert('Backup is Admin-only.'); return; }
   const backup = { candidates, exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(backup,null,2)], {type:'application/json'});
   const url = URL.createObjectURL(blob);
